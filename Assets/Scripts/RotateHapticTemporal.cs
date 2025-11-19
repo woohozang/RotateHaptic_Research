@@ -49,6 +49,13 @@ public class RotateHapticTemporal : MonoBehaviour
     private Vector3 _prevPos, _prevVel;
     private float _ampL, _ampR;
 
+    public enum VelocitySource { Auto, Rigidbody, TransformDelta }
+    public VelocitySource velocitySource = VelocitySource.Auto;
+
+    public enum ProjectAxis { ForwardZ, RightX, Custom }
+    public ProjectAxis projectAxis = ProjectAxis.ForwardZ;
+    public Vector3 customAxis = Vector3.forward; // projectAxis=Custom일 때 사용
+
     void Awake()
     {
         _rb = GetComponentInParent<Rigidbody>() ?? GetComponent<Rigidbody>();
@@ -90,16 +97,46 @@ public class RotateHapticTemporal : MonoBehaviour
         }
 
         // 1) 카트 전후 속도/가속 (motionFrame 기준)
+        // ---- 1) 카트 전후 속도/가속 (motionFrame 기준) ----
         float dt = Mathf.Max(Time.deltaTime, 1e-4f);
-        Vector3 vel = _rb ? _rb.velocity : (_refTf.position - _prevPos) / dt;
+        Transform refTf = _refTf; // (Start에서 설정된 기준 프레임)
 
-        Vector3 fwd = _refTf.forward; // 기준의 전방
-        float vZ_prev = Vector3.Dot(_prevVel, fwd);
-        float vZ = Vector3.Dot(vel, fwd);
+        Vector3 worldVel;
+
+        // 속도 소스 자동 판별: 리짓보디가 없거나 isKinematic이거나, 속도가 아주 작으면 Transform 델타로 대체
+        bool useRb =
+            (velocitySource == VelocitySource.Rigidbody) ||
+            (velocitySource == VelocitySource.Auto && _rb != null && !_rb.isKinematic);
+
+        if (useRb)
+        {
+            worldVel = _rb.velocity;
+            // 리짓보디 속도가 사실상 0이면 델타로 보정
+            if (worldVel.sqrMagnitude < 1e-6f)
+                worldVel = (refTf.position - _prevPos) / dt;
+        }
+        else
+        {
+            worldVel = (refTf.position - _prevPos) / dt;
+        }
+
+        // 기준 축 선택
+        Vector3 axisW = refTf.forward;
+        if (projectAxis == ProjectAxis.RightX) axisW = refTf.right;
+        else if (projectAxis == ProjectAxis.Custom)
+        {
+            // 사용자가 입력한 축을 월드 기준으로 회전
+            axisW = (refTf.rotation * customAxis).normalized;
+        }
+        axisW.Normalize();
+
+        float vZ_prev = Vector3.Dot(_prevVel, axisW);
+        float vZ = Vector3.Dot(worldVel, axisW);
         float aZ = (vZ - vZ_prev) / dt;
 
-        _prevPos = _refTf.position;
-        _prevVel = vel;
+        _prevPos = refTf.position;
+        _prevVel = worldVel;
+
 
         // 2) FSM 전이
         switch (_phase)

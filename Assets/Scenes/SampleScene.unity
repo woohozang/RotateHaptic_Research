@@ -322,7 +322,7 @@ MonoBehaviour:
     _pinkyRequirement: 1
     _unselectMode: 0
   _movementProvider: {fileID: 0}
-  _handAligment: 1
+  _handAligment: 0
   _handGrabPoses:
   - {fileID: 2065605383}
 --- !u!114 &146559032
@@ -1370,18 +1370,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 420476113}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c31906feb39818418907111412d3499, type: 3}
+  m_Script: {fileID: 11500000, guid: e1c1e0f3441965c47aa79f86aa8a94e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   strongHaptic: 0.8
   weakHaptic: 0.2
   strongFrequency: 0.9
   weakFrequency: 0.25
-  rotationThreshold: 0.1
+  globalGain: 1.3
+  minAmpWhileActive: 0.08
+  rotationThreshold: 0.08
   speedDeadzone: 0.03
+  rotationToMax: 18
+  bothHandsBoost: 1.25
+  bothHandsSimilarity: 0.55
   isHeavy: 0
-  heavyMultiplier: 2
-  rotationToMax: 20
+  heavyMultiplier: 1.6
+  inertiaGain: 0.25
+  inertiaDeadzone: 0.2
+  inertiaFreqBoost: 0.15
+  smooth: 10
 --- !u!4 &475242798 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4574527821592105548, guid: af3467ecf1a7ab8428e0ef8e746be06a,
@@ -1943,7 +1951,7 @@ MonoBehaviour:
     _pinkyRequirement: 1
     _unselectMode: 0
   _movementProvider: {fileID: 0}
-  _handAligment: 1
+  _handAligment: 0
   _handGrabPoses:
   - {fileID: 92194290}
 --- !u!114 &1000260863
@@ -2959,7 +2967,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1748415080}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cf38380623985e54eb8545349b5682e8, type: 3}
   m_Name: 
@@ -2971,6 +2979,54 @@ MonoBehaviour:
   rotationThreshold: 0.1
   isHeavy: 0
   heavyMultiplier: 2
+--- !u!114 &1748415085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748415080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20f3a26495a1e4946840bdaf9e8fbd71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  motionFrame: {fileID: 1748415083}
+  strongAmp: 0.9
+  weakAmp: 0.35
+  baseFreq: 0.35
+  globalGain: 1.4
+  minAmpWhileActive: 0.1
+  smooth: 12
+  speedThresholdUp: 0.1
+  speedThresholdDown: 0.06
+  brakeAccelThreshold: 0.35
+  startPulse:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  brakePulse:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  movingAmpCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  pulseDuration: 0.18
+  handSpeedDeadzone: 0.02
+  bothHandsBoost: 1.25
+  bothHandsSimilarity: 0.55
+  yawThresholdDeg: 0.2
+  yawGain: 0.02
+  logEveryFrame: 0
+  testPulseOnA: 0
 --- !u!1 &1761725602
 GameObject:
   m_ObjectHideFlags: 0
@@ -3473,6 +3529,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1748415084}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e1aa05660c7f2ba48ad235047edcecfc,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1748415085}
   m_SourcePrefab: {fileID: 100100000, guid: e1aa05660c7f2ba48ad235047edcecfc, type: 3}
 --- !u!1001 &1846950024
 PrefabInstance:
@@ -4068,6 +4128,9 @@ MonoBehaviour:
   bothHandsSimilarity: 0.55
   logEveryFrame: 1
   testPulseOnA: 1
+  velocitySource: 0
+  projectAxis: 0
+  customAxis: {x: 0, y: 0, z: 1}
 --- !u!1 &2065605380
 GameObject:
   m_ObjectHideFlags: 0
