@@ -4,7 +4,7 @@ using Oculus.Interaction;
 /// <summary>
 /// 전진/후진 및 제자리 회전에 물리 법칙(관성, 마찰력)을 적용한 햅틱 시뮬레이터
 /// </summary>
-public class RotateHapticCombinedV2 : MonoBehaviour
+public class RotateHapticCombinedV4 : MonoBehaviour
 {
     [Header("기준 프레임")]
     public Transform motionFrame;
@@ -155,21 +155,42 @@ public class RotateHapticCombinedV2 : MonoBehaviour
     {
         if (_phase != Phase.Idle && baseAmp < minAmpWhileActive) baseAmp = minAmpWhileActive;
 
+        // 1. 컨트롤러 입력 속도 획득
         Vector3 lv = OVRInput.GetLocalControllerVelocity(OVRInput.Controller.LTouch);
         Vector3 rv = OVRInput.GetLocalControllerVelocity(OVRInput.Controller.RTouch);
         float lS = (lv.magnitude < handSpeedDeadzone) ? 0f : lv.magnitude;
         float rS = (rv.magnitude < handSpeedDeadzone) ? 0f : rv.magnitude;
+        float maxHandSpeed = Mathf.Max(lS, rS);
 
-        // 양손 협동 보너스
-        if (Mathf.Max(lS, rS) > 0f && (Mathf.Min(lS, rS) / (Mathf.Max(lS, rS) + 1e-5f) >= bothHandsSimilarity))
-            baseAmp *= bothHandsBoost;
+        // 2. 속력에 따른 동적 강도 강화 (카트 속도 + 실제 손 속도 배합)
+        // 사용자가 손을 빨리 움직이면 카트가 느려도 즉각적인 강도가 느껴지도록 함
+        float handSpeedFactor = Mathf.Clamp01(maxHandSpeed / 1.5f); // 1.5m/s를 최대 속도로 가정
+        baseAmp *= (1.0f + handSpeedFactor);
 
-        // 주도 손 판별 (더 빨리 움직이는 손에 strongAmp 부여)
-        bool leftDominant = (lS >= rS);
+        // 3. 양손 주도권 밸런싱 (Symmetry Logic)
+        float targetL, targetR;
+        float speedRatio = (maxHandSpeed > 0.01f) ? Mathf.Min(lS, rS) / maxHandSpeed : 1f;
 
-        float targetL = leftDominant ? strongAmp * baseAmp : weakAmp * baseAmp;
-        float targetR = leftDominant ? weakAmp * baseAmp : strongAmp * baseAmp;
+        if (speedRatio >= bothHandsSimilarity)
+        {
+            // 양손 협동 모드 (평균값 적용 - 여기는 대칭이라 수정 불필요)
+            float midAmp = (strongAmp + weakAmp) * 0.5f;
+            targetL = midAmp * baseAmp * bothHandsBoost;
+            targetR = midAmp * baseAmp * bothHandsBoost;
+        }
+        else
+        {
+            // [수정 포인트] 비대칭 햅틱 분배 (역할 반전)
+            bool leftDominant = (lS > rS);
 
+            // 기존: leftDominant ? strongAmp : weakAmp
+            // 수정: 더 빨리 움직이는 손(Dominant)에 weakAmp(저항감)를, 
+            //      버티는 손(Anchor)에 strongAmp(운동감)를 할당
+            targetL = leftDominant ? weakAmp * baseAmp : strongAmp * baseAmp;
+            targetR = leftDominant ? strongAmp * baseAmp : weakAmp * baseAmp;
+        }
+
+        // 4. 부드러운 전이 및 적용
         if (_phase == Phase.Idle && yawAbs <= yawThresholdDeg)
         {
             _ampL = Mathf.Lerp(_ampL, 0f, smooth * dt);

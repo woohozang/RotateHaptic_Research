@@ -1,152 +1,119 @@
 ﻿using UnityEngine;
+using Oculus.Interaction;
+using System.Linq;
 
 public class RotateHaptic2 : MonoBehaviour
 {
+    [Header("인터랙션 설정")]
+    [SerializeField] private Grabbable _grabbable;
+
+    [Header("진동 감도 (정지 떨림 방지)")]
+    [Tooltip("손떨림을 무시할 최소 초당 회전 각도 (추천: 2.0~5.0)")]
+    public float angularSpeedDeadzone = 3.0f;
+    [Tooltip("진동이 시작되는 최소 임계값 (0.1 이하 추천)")]
+    public float hapticActivationThreshold = 0.15f;
+    [Tooltip("값이 작을수록 정지 상태가 정적임 (1.0~3.0)")]
+    public float inputCurveExponent = 2.0f;
+
     [Header("기본 햅틱 세기")]
     [Range(0f, 1f)] public float strongHaptic = 0.8f;
     [Range(0f, 1f)] public float weakHaptic = 0.2f;
-
-    [Header("주파수 (0~1)")]
-    [Range(0f, 1f)] public float strongFrequency = 0.9f;
-    [Range(0f, 1f)] public float weakFrequency = 0.25f;
-
-    [Header("전역 게인 / 최소 세기")]
-    [Tooltip("최종 진폭에 곱해지는 전체 배율")]
     public float globalGain = 1.3f;
-    [Tooltip("회전 중 최소 진폭")]
-    [Range(0f, 0.3f)] public float minAmpWhileActive = 0.12f;
 
-    [Header("민감도")]
-    [Tooltip("회전 변화량(도/프레임) 데드존")]
-    public float rotationThreshold = 0.05f;
-    [Tooltip("컨트롤러 속도 데드존 (m/s)")]
-    public float speedDeadzone = 0.03f;
-    [Tooltip("최대 진폭에 도달하는 회전 속도 (도/초). 30~60 추천")]
-    public float rotationToMaxSpeed = 45f;
+    [Header("주파수 및 스무딩")]
+    [Range(0f, 1f)] public float strongFrequency = 0.8f;
+    public float smooth = 15f;
+    public float angularAccelGain = 0.04f;
 
-    [Header("양손 시너지")]
-    public float bothHandsBoost = 1.25f;
-    [Range(0f, 1f)] public float bothHandsSimilarity = 0.55f;
-
-    [Header("무게 옵션")]
-    public bool isHeavy = false;
-    public float heavyMultiplier = 1.6f;
-
-    [Header("관성(앞/뒤 밀기) 피드백")]
-    public float inertiaGain = 0.4f;
-    public float inertiaDeadzone = 0.15f;
-    public float inertiaFreqBoost = 0.15f;
-
-    [Header("스무딩")]
-    public float smooth = 12f;
-
-    private float previousYRotation;
-    private bool vibrating;
-    private Vector3 _prevCartVel;
+    private float _prevYRotation;
+    private float _prevAngularSpeed;
     private float _ampL, _ampR;
-    private Rigidbody _rb;
+    private bool _vibrating;
 
-    void Awake()
-    {
-        _rb = GetComponentInParent<Rigidbody>() ?? GetComponent<Rigidbody>();
-    }
-
-    void Start()
-    {
-        previousYRotation = transform.eulerAngles.y;
-        _prevCartVel = Vector3.zero;
-    }
+    void Awake() => _grabbable = _grabbable ?? GetComponent<Grabbable>();
 
     void Update()
     {
+        // 1. 잡기 상태 체크
+        if (_grabbable == null || !_grabbable.SelectingPoints.Any())
+        {
+            if (_vibrating) StopHaptics();
+            return;
+        }
+
         float dt = Mathf.Max(Time.deltaTime, 1e-4f);
 
-        // 1) 회전 데이터 계산 (초당 회전 속도 산출)
+        // 2. 물리 데이터 계산 및 노이즈 필터링
         float yNow = transform.eulerAngles.y;
-        float delta = Mathf.DeltaAngle(previousYRotation, yNow);
-        float angularSpeed = delta / dt; // 초당 몇 도 도는가?
+        float delta = Mathf.DeltaAngle(_prevYRotation, yNow);
+        float rawAngularSpeed = Mathf.Abs(delta / dt);
 
-        // 2) 컨트롤러 속도
+        // [필터 1] 초당 회전 속도가 데드존 이하면 0으로 간주
+        float filteredSpeed = (rawAngularSpeed < angularSpeedDeadzone) ? 0f : rawAngularSpeed;
+
+        float rawAccel = Mathf.Abs(filteredSpeed - _prevAngularSpeed) / dt;
+        _prevAngularSpeed = filteredSpeed;
+
+        // 3. 컨트롤러 실제 이동 속도 (손의 의도 확인)
         Vector3 lv = OVRInput.GetLocalControllerVelocity(OVRInput.Controller.LTouch);
         Vector3 rv = OVRInput.GetLocalControllerVelocity(OVRInput.Controller.RTouch);
-        lv.y = 0f; rv.y = 0f;
-        float lSpeed = (lv.magnitude < speedDeadzone) ? 0f : lv.magnitude;
-        float rSpeed = (rv.magnitude < speedDeadzone) ? 0f : rv.magnitude;
+        float maxHandSpeed = Mathf.Max(lv.magnitude, rv.magnitude);
 
-        // 3) 전후 가속도(관성) 계산
-        Vector3 cartVel = _rb != null ? _rb.velocity : Vector3.zero;
-        float prevVz = Vector3.Dot(transform.InverseTransformDirection(_prevCartVel), Vector3.forward);
-        float currVz = Vector3.Dot(transform.InverseTransformDirection(cartVel), Vector3.forward);
-        float accelZ = (currVz - prevVz) / dt;
-        _prevCartVel = cartVel;
+        // 4. 햅틱 강도 계산
+        float speedFactor = Mathf.Clamp01(filteredSpeed / 45f);
+        float accelFactor = Mathf.Clamp01(rawAccel * angularAccelGain);
 
-        // 4) 회전 활성 조건 (데드존 체크)
-        if (Mathf.Abs(delta) > rotationThreshold || angularSpeed > 2.0f)
+        // [필터 2] 지수적 스케일링 (작은 값은 더 작게, 큰 값은 확실하게)
+        // 예: 0.1의 입력을 2제곱하면 0.01이 되어 거의 느껴지지 않음
+        float combinedFactor = Mathf.Max(speedFactor, accelFactor);
+        combinedFactor = Mathf.Pow(combinedFactor, inputCurveExponent);
+
+        // 5. 최종 활성화 조건
+        // 일정 수준(hapticActivationThreshold) 이상의 '의도'가 보일 때만 햅틱 작동
+        if (combinedFactor > hapticActivationThreshold || maxHandSpeed > 0.15f)
         {
-            // [수정] 초당 회전 속도를 기준으로 스케일링
-            float rotScale = Mathf.Clamp01(angularSpeed / rotationToMaxSpeed);
+            float finalAmpBase = combinedFactor * globalGain;
 
-            // 무게 및 전역 게인 적용
-            float baseStrong = strongHaptic * (isHeavy ? heavyMultiplier : 1f) * globalGain;
-            float baseWeak = weakHaptic * (isHeavy ? heavyMultiplier : 1f) * globalGain;
+            // 주도 손 판별 (손의 속도 기반)
+            bool leftLeading = lv.magnitude >= rv.magnitude;
+            float targetL = (leftLeading ? strongHaptic : weakHaptic) * finalAmpBase;
+            float targetR = (leftLeading ? weakHaptic : strongHaptic) * finalAmpBase;
 
-            // 관성(가속도) 기여분 계산
-            float inertiaEffort = Mathf.Max(0f, Mathf.Abs(accelZ) - inertiaDeadzone) * inertiaGain;
+            _ampL = Mathf.Lerp(_ampL, Mathf.Clamp01(targetL), smooth * dt);
+            _ampR = Mathf.Lerp(_ampR, Mathf.Clamp01(targetR), smooth * dt);
 
-            // 최종 강/약 진폭 결정
-            float targetStrong = Mathf.Max(minAmpWhileActive, (baseStrong * rotScale) + inertiaEffort);
-            float targetWeak = Mathf.Max(minAmpWhileActive * 0.5f, (baseWeak * rotScale) + (inertiaEffort * 0.5f));
-
-            // 양손 시너지 부스트
-            float maxS = Mathf.Max(lSpeed, rSpeed);
-            float minS = Mathf.Min(lSpeed, rSpeed);
-            if (maxS > 0.1f && (minS / maxS) >= bothHandsSimilarity)
-            {
-                targetStrong *= bothHandsBoost;
-                targetWeak *= bothHandsBoost;
-            }
-
-            // 5) 주도 손 판별 및 출력값 결정
-            bool leftDominant = lSpeed >= rSpeed;
-            float finalAmpL = Mathf.Clamp01(leftDominant ? targetStrong : targetWeak);
-            float finalAmpR = Mathf.Clamp01(leftDominant ? targetWeak : targetStrong);
-
-            // 주파수 결정 (가속 시 주파수 증가)
-            float finalFreqL = Mathf.Clamp01((leftDominant ? strongFrequency : weakFrequency) + (Mathf.Abs(accelZ) * inertiaFreqBoost));
-            float finalFreqR = Mathf.Clamp01((leftDominant ? weakFrequency : strongFrequency) + (Mathf.Abs(accelZ) * inertiaFreqBoost));
-
-            // 스무딩 처리
-            _ampL = Mathf.Lerp(_ampL, finalAmpL, smooth * dt);
-            _ampR = Mathf.Lerp(_ampR, finalAmpR, smooth * dt);
-
-            // 햅틱 출력
-            OVRInput.SetControllerVibration(finalFreqL, _ampL, OVRInput.Controller.LTouch);
-            OVRInput.SetControllerVibration(finalFreqR, _ampR, OVRInput.Controller.RTouch);
-
-            // [데이터 확인용 로그]
-            Debug.Log($"<color=#00FF00>[Active]</color> AngularSpeed: {angularSpeed:F1}°/s | L-Hand: Amp({_ampL:F2}), Freq({finalFreqL:F2}) | R-Hand: Amp({_ampR:F2}), Freq({finalFreqR:F2})");
-
-            vibrating = true;
+            OVRInput.SetControllerVibration(strongFrequency, _ampL, OVRInput.Controller.LTouch);
+            OVRInput.SetControllerVibration(strongFrequency, _ampR, OVRInput.Controller.RTouch);
+            _vibrating = true;
         }
         else
         {
-            if (vibrating)
-            {
-                _ampL = Mathf.Lerp(_ampL, 0f, smooth * dt);
-                _ampR = Mathf.Lerp(_ampR, 0f, smooth * dt);
-                OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
-                OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch);
-
-                if (_ampL < 0.01f)
-                {
-                    Debug.Log("<color=#FF0000>[Stopped]</color>");
-                    vibrating = false;
-                }
-            }
+            StopSmoothly(dt);
         }
 
-        previousYRotation = yNow;
+        _prevYRotation = yNow;
     }
 
-    void OnDisable() => OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
+    private void StopSmoothly(float dt)
+    {
+        _ampL = Mathf.Lerp(_ampL, 0f, smooth * dt);
+        _ampR = Mathf.Lerp(_ampR, 0f, smooth * dt);
+
+        if (_ampL < 0.01f && _ampR < 0.01f)
+        {
+            StopHaptics();
+        }
+        else
+        {
+            OVRInput.SetControllerVibration(strongFrequency, _ampL, OVRInput.Controller.LTouch);
+            OVRInput.SetControllerVibration(strongFrequency, _ampR, OVRInput.Controller.RTouch);
+        }
+    }
+
+    private void StopHaptics()
+    {
+        _ampL = _ampR = 0f;
+        OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.All);
+        _vibrating = false;
+    }
 }
