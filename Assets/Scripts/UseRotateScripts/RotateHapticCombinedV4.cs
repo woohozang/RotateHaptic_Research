@@ -1,18 +1,22 @@
 using UnityEngine;
 using Oculus.Interaction;
+using System.Linq;
 
-/// <summary>
-/// 전진/후진 및 제자리 회전에 물리 법칙(관성, 마찰력)을 적용한 햅틱 시뮬레이터
-/// </summary>
 public class RotateHapticCombinedV4 : MonoBehaviour
 {
     [Header("기준 프레임")]
     public Transform motionFrame;
 
-    [Header("기본 햅틱 설정")]
-    [Range(0, 1)] public float strongAmp = 0.9f;   // 주도하는 손 (운동감)
-    [Range(0, 1)] public float weakAmp = 0.35f;    // 버티는 손 (무게감)
-    [Range(0, 1)] public float baseFreq = 0.35f;
+    [Header("기본 햅틱 설정 (비대칭)")]
+    [Tooltip("주도하는 손: 묵직한 운동감")]
+    [Range(0, 1)] public float strongAmp = 0.8f;
+    [Range(0, 1)] public float strongFreq = 0.2f;
+
+    [Tooltip("보조하는 손: 팽팽한 저항감")]
+    [Range(0, 1)] public float weakAmp = 0.4f;
+    [Range(0, 1)] public float weakFreq = 0.9f;
+
+    [Header("글로벌 제어")]
     public float globalGain = 1.4f;
     public float minAmpWhileActive = 0.1f;
     public float smooth = 12f;
@@ -22,19 +26,19 @@ public class RotateHapticCombinedV4 : MonoBehaviour
     public float speedThresholdDown = 0.06f;
     public float brakeAccelThreshold = 0.35f;
 
-    [Header("물리 법칙 커브 (X:시간, Y:강도)")]
-    public AnimationCurve startPulse;       // 출발 시 정지 마찰력
-    public AnimationCurve yawStartPulse;    // 제자리 회전 시작 시 저항 (추가)
-    public AnimationCurve brakePulse;       // 제동 시 충격량
-    public AnimationCurve movingAmpCurve;   // 주행 중 속도 비례 진동
+    [Header("물리 법칙 커브")]
+    public AnimationCurve startPulse;
+    public AnimationCurve yawStartPulse;
+    public AnimationCurve brakePulse;
+    public AnimationCurve movingAmpCurve;
     public float pulseDuration = 0.18f;
 
     [Header("양손 및 회전 감도")]
     public float handSpeedDeadzone = 0.02f;
     public float bothHandsBoost = 1.25f;
     [Range(0, 1)] public float bothHandsSimilarity = 0.55f;
-    public float yawThresholdDeg = 0.2f;    // 미세 회전 방지 데드존
-    public float yawGain = 0.02f;           // 지속 회전 시 기본 진폭
+    public float yawThresholdDeg = 0.2f;
+    public float yawGain = 0.02f;
 
     private enum Phase { Idle, Start, Moving, Brake }
     private Phase _phase = Phase.Idle;
@@ -45,6 +49,7 @@ public class RotateHapticCombinedV4 : MonoBehaviour
     private Vector3 _prevPos, _prevVel;
     private float _prevYaw;
     private float _ampL, _ampR;
+    private float _freqL, _freqR; // [추가] 각 손의 주파수 저장 변수
 
     void Awake()
     {
@@ -64,7 +69,6 @@ public class RotateHapticCombinedV4 : MonoBehaviour
     {
         float dt = Mathf.Max(Time.deltaTime, 1e-4f);
 
-        // 1. 물리 데이터 계산 (전진 속도 및 회전량)
         Vector3 vel = _rb && !_rb.isKinematic ? _rb.velocity : (_frame.position - _prevPos) / dt;
         Vector3 fwd = _frame.forward;
         float vZPrev = Vector3.Dot(_prevVel, fwd);
@@ -80,15 +84,13 @@ public class RotateHapticCombinedV4 : MonoBehaviour
         _prevVel = vel;
         _prevYaw = yaw;
 
-        // 2. 상태 머신 관리 (제자리 회전 조건 추가)
         UpdatePhase(speedAbs, aZ, yawAbs, dt);
 
-        // 3. 커브 기반 베이스 진폭 계산 (Evaluation)
+        // 3. 커브 기반 베이스 진폭 계산
         float baseAmp = CalculateBaseAmplitude(speedAbs, yawAbs);
-        float freq = (_phase == Phase.Brake) ? baseFreq + 0.15f : baseFreq;
 
-        // 4. 비대칭 햅틱 분배 (Leading vs Anchor)
-        DistributeHaptics(baseAmp, freq, yawAbs, dt);
+        // 4. 비대칭 햅틱 분배 (진폭과 주파수를 모두 다르게 설정)
+        DistributeHaptics(baseAmp, yawAbs, dt);
     }
 
     private void UpdatePhase(float speedAbs, float aZ, float yawAbs, float dt)
@@ -96,25 +98,21 @@ public class RotateHapticCombinedV4 : MonoBehaviour
         switch (_phase)
         {
             case Phase.Idle:
-                // 전진하거나 제자리에서 확 돌릴 때 Start 상태로 진입
                 if (speedAbs >= speedThresholdUp || yawAbs >= yawThresholdDeg * 3f)
                 {
                     _phase = Phase.Start;
                     _phaseT = 0f;
                 }
                 break;
-
             case Phase.Start:
                 _phaseT += dt;
                 if (aZ <= -brakeAccelThreshold) { _phase = Phase.Brake; _phaseT = 0f; }
                 else if (_phaseT >= pulseDuration) { _phase = Phase.Moving; _phaseT = 0f; }
                 break;
-
             case Phase.Moving:
                 if (aZ <= -brakeAccelThreshold) { _phase = Phase.Brake; _phaseT = 0f; }
                 else if (speedAbs <= speedThresholdDown && yawAbs <= yawThresholdDeg) { _phase = Phase.Idle; _phaseT = 0f; }
                 break;
-
             case Phase.Brake:
                 _phaseT += dt;
                 if (_phaseT >= pulseDuration)
@@ -132,26 +130,20 @@ public class RotateHapticCombinedV4 : MonoBehaviour
         float t = Mathf.Clamp01(_phaseT / pulseDuration);
 
         if (_phase == Phase.Start)
-        {
-            // 전진 시작이면 startPulse, 회전 위주면 yawStartPulse 사용
             baseAmp = (yawAbs > speedAbs * 10f) ? yawStartPulse.Evaluate(t) : startPulse.Evaluate(t);
-        }
         else if (_phase == Phase.Brake)
-        {
             baseAmp = brakePulse.Evaluate(t);
-        }
         else if (_phase == Phase.Moving)
         {
             float normSpeed = Mathf.Clamp01(speedAbs / (speedThresholdUp * 2.0f));
             baseAmp = movingAmpCurve.Evaluate(normSpeed);
-            // 제자리 회전 중이면 회전량에 따른 추가 진폭 반영
             if (yawAbs > yawThresholdDeg) baseAmp = Mathf.Max(baseAmp, yawAbs * yawGain);
         }
 
         return Mathf.Clamp01(baseAmp * globalGain);
     }
 
-    private void DistributeHaptics(float baseAmp, float freq, float yawAbs, float dt)
+    private void DistributeHaptics(float baseAmp, float yawAbs, float dt)
     {
         if (_phase != Phase.Idle && baseAmp < minAmpWhileActive) baseAmp = minAmpWhileActive;
 
@@ -162,94 +154,71 @@ public class RotateHapticCombinedV4 : MonoBehaviour
         float rS = (rv.magnitude < handSpeedDeadzone) ? 0f : rv.magnitude;
         float maxHandSpeed = Mathf.Max(lS, rS);
 
-        // 2. 속력에 따른 동적 강도 강화 (카트 속도 + 실제 손 속도 배합)
-        // 사용자가 손을 빨리 움직이면 카트가 느려도 즉각적인 강도가 느껴지도록 함
-        float handSpeedFactor = Mathf.Clamp01(maxHandSpeed / 1.5f); // 1.5m/s를 최대 속도로 가정
+        float handSpeedFactor = Mathf.Clamp01(maxHandSpeed / 1.5f);
         baseAmp *= (1.0f + handSpeedFactor);
 
-        // 3. 양손 주도권 밸런싱 (Symmetry Logic)
-        float targetL, targetR;
+        // 2. 주도권에 따른 진폭 및 주파수 결정
+        float targetLAmp, targetRAmp, targetLFreq, targetRFreq;
         float speedRatio = (maxHandSpeed > 0.01f) ? Mathf.Min(lS, rS) / maxHandSpeed : 1f;
+
+        // 제동 상태일 때 주파수 오프셋 (기존 로직 유지)
+        float brakeFreqOffset = (_phase == Phase.Brake) ? 0.15f : 0f;
 
         if (speedRatio >= bothHandsSimilarity)
         {
-            // 양손 협동 모드 (평균값 적용 - 여기는 대칭이라 수정 불필요)
-            float midAmp = (strongAmp + weakAmp) * 0.5f;
-            targetL = midAmp * baseAmp * bothHandsBoost;
-            targetR = midAmp * baseAmp * bothHandsBoost;
+            // 양손 협동 모드: 둘 다 주도적인 햅틱 적용
+            targetLAmp = targetRAmp = strongAmp * baseAmp * bothHandsBoost;
+            targetLFreq = targetRFreq = strongFreq + brakeFreqOffset;
         }
         else
         {
-            // [수정 포인트] 비대칭 햅틱 분배 (역할 반전)
+            // 비대칭 모드: 더 빠른 손이 Leader
             bool leftDominant = (lS > rS);
 
-            // 기존: leftDominant ? strongAmp : weakAmp
-            // 수정: 더 빨리 움직이는 손(Dominant)에 weakAmp(저항감)를, 
-            //      버티는 손(Anchor)에 strongAmp(운동감)를 할당
-            targetL = leftDominant ? weakAmp * baseAmp : strongAmp * baseAmp;
-            targetR = leftDominant ? strongAmp * baseAmp : weakAmp * baseAmp;
+            targetLAmp = leftDominant ? strongAmp * baseAmp : weakAmp * baseAmp;
+            targetRAmp = leftDominant ? weakAmp * baseAmp : strongAmp * baseAmp;
+
+            targetLFreq = (leftDominant ? strongFreq : weakFreq) + brakeFreqOffset;
+            targetRFreq = (leftDominant ? weakFreq : strongFreq) + brakeFreqOffset;
         }
 
-        // 4. 부드러운 전이 및 적용
+        // 3. 부드러운 전이 적용 (Idle 시 정지 로직 포함)
         if (_phase == Phase.Idle && yawAbs <= yawThresholdDeg)
         {
             _ampL = Mathf.Lerp(_ampL, 0f, smooth * dt);
             _ampR = Mathf.Lerp(_ampR, 0f, smooth * dt);
+            _freqL = _freqR = 0f;
         }
         else
         {
-            _ampL = Mathf.Lerp(_ampL, targetL, smooth * dt);
-            _ampR = Mathf.Lerp(_ampR, targetR, smooth * dt);
+            _ampL = Mathf.Lerp(_ampL, targetLAmp, smooth * dt);
+            _ampR = Mathf.Lerp(_ampR, targetRAmp, smooth * dt);
+            _freqL = targetLFreq; // 주파수는 즉각적으로 변하는 것이 질감 표현에 유리
+            _freqR = targetRFreq;
         }
 
-        OVRInput.SetControllerVibration(freq, _ampL, OVRInput.Controller.LTouch);
-        OVRInput.SetControllerVibration(freq, _ampR, OVRInput.Controller.RTouch);
+        // 4. 최종 출력 (좌우 독립적 전달)
+        OVRInput.SetControllerVibration(_freqL, _ampL, OVRInput.Controller.LTouch);
+        OVRInput.SetControllerVibration(_freqR, _ampR, OVRInput.Controller.RTouch);
     }
 
     private void InitializeCurves()
     {
-        // 1. 출발 펄스: EaseIn 효과를 위해 수동으로 Keyframe 정의
         if (startPulse == null || startPulse.length == 0)
-        {
-            // 0초에 0에서 시작하여 pulseDuration에 1이 되는 곡선
-            startPulse = new AnimationCurve(
-                new Keyframe(0f, 0f, 0f, 2f), // 시작점 (시간, 값, inTangent, outTangent)
-                new Keyframe(pulseDuration, 1f, 0f, 0f) // 끝점
-            );
-        }
-
-        // 2. 제자리 회전 펄스
+            startPulse = new AnimationCurve(new Keyframe(0f, 0f, 0f, 2f), new Keyframe(pulseDuration, 1f, 0f, 0f));
         if (yawStartPulse == null || yawStartPulse.length == 0)
-        {
-            yawStartPulse = new AnimationCurve(
-                new Keyframe(0f, 0f),
-                new Keyframe(0.05f, 0.8f),
-                new Keyframe(pulseDuration, 0f)
-            );
-        }
-
-        // 3. 제동 펄스
+            yawStartPulse = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 0.8f), new Keyframe(pulseDuration, 0f));
         if (brakePulse == null || brakePulse.length == 0)
-        {
-            brakePulse = new AnimationCurve(
-                new Keyframe(0f, 0f),
-                new Keyframe(0.04f, 1f),
-                new Keyframe(pulseDuration, 0f)
-            );
-        }
-
-        // 4. 주행 진폭 커브: 이건 유니티 표준인 Linear를 사용합니다.
+            brakePulse = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.04f, 1f), new Keyframe(pulseDuration, 0f));
         if (movingAmpCurve == null || movingAmpCurve.length == 0)
-        {
             movingAmpCurve = AnimationCurve.Linear(0f, 0.18f, 1f, 0.55f);
-        }
     }
 
     private void StopHaptics()
     {
         _ampL = _ampR = 0f;
-        OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
-        OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch);
+        _freqL = _freqR = 0f;
+        OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.All);
     }
 
     private void OnDisable() => StopHaptics();

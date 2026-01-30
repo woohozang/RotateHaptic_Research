@@ -3,7 +3,28 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - SamplesInfoPanel
+  - QDSUISharedThemeColor
+  - QDSUIToggleButton
+  - QDSUIIcon
+  - QDSUITextSecondaryColor
+  - QDSUISection
+  - QDSUISecondaryButton
+  - QDSUIAccentColor
+  - QDSUIBorderlessButton
+  - QDSUITooltip
+  - QDSUIBackplateGradient
+  - QDSUIToggleBorderlessButton
+  - QDSUIToggleSwitch
+  - QDSUITextInputField
+  - QDSUIToggleCheckboxRadio
+  - QDSUIPrimaryButton
+  - QDSUITextInvertedColor
+  - QDSUITextSecondaryInvertedColor
+  - QDSUIDestructiveButton
+  - Floor_Tile
+  - Floor_Asphalt
   layers:
   - Default
   - TransparentFX
@@ -11,7 +32,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Floor
   - 
   - InteractorHand
   - InteractableObject
