@@ -7055,6 +7055,7 @@ GameObject:
   - component: {fileID: 726792502}
   - component: {fileID: 726792499}
   - component: {fileID: 726792504}
+  - component: {fileID: 726792505}
   - component: {fileID: 726792503}
   m_Layer: 0
   m_Name: BothHandle
@@ -7123,7 +7124,7 @@ MonoBehaviour:
   _transferOnSecondSelection: 0
   _addNewPointsToFront: 0
   _forwardElement: {fileID: 0}
-  _oneGrabTransformer: {fileID: 0}
+  _oneGrabTransformer: {fileID: 726792505}
   _twoGrabTransformer: {fileID: 726792504}
   _targetTransform: {fileID: 1572896631}
   _maxGrabPoints: -1
@@ -7222,6 +7223,36 @@ MonoBehaviour:
     MinY:
       Constrain: 1
       Value: 0
+--- !u!114 &726792505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 726792496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2df7fce1de9b9a84f8327236c25b52ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cartPivot: {fileID: 1498228920}
+  _planeTransform: {fileID: 1572896631}
+  _localPlaneNormal: {x: 0, y: 1, z: 0}
+  _moveGain: 1
+  _yawGain: 1
+  _enableLeftLag: 1
+  _leftInteractorObject: {fileID: 755680529}
+  _posFollow: 6
+  _rotFollow: 6
+  _maxOffsetMeters: 0.15
+  _posJitterThreshold: 0.0005
+  _rotJitterThresholdDeg: 0.2
+--- !u!1 &755680529 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9170937211371257168, guid: 0a7d2469f24041c4284c66706f84c45e,
+    type: 3}
+  m_PrefabInstance: {fileID: 1677273069}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &764748832
 GameObject:
   m_ObjectHideFlags: 0
@@ -8192,6 +8223,12 @@ MonoBehaviour:
   steeringSensitivity: -20
   maxSteerAngle: 40
   steerLerpSpeed: 5
+--- !u!1 &947936710 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5106417804157790012, guid: 0a7d2469f24041c4284c66706f84c45e,
+    type: 3}
+  m_PrefabInstance: {fileID: 1677273069}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &954024724 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5659873762610535274, guid: e1aa05660c7f2ba48ad235047edcecfc,
@@ -12977,7 +13014,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1497694109}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 37d3b9623277ee047aa51fb221bf75fd, type: 3}
   m_Name: 
@@ -14903,8 +14940,10 @@ GameObject:
   - component: {fileID: 1691344687}
   - component: {fileID: 1691344686}
   - component: {fileID: 1691344689}
+  - component: {fileID: 1691344691}
   - component: {fileID: 1691344684}
   - component: {fileID: 1691344690}
+  - component: {fileID: 1691344692}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -14986,7 +15025,7 @@ MonoBehaviour:
   _transferOnSecondSelection: 0
   _addNewPointsToFront: 0
   _forwardElement: {fileID: 0}
-  _oneGrabTransformer: {fileID: 0}
+  _oneGrabTransformer: {fileID: 1691344691}
   _twoGrabTransformer: {fileID: 1691344689}
   _targetTransform: {fileID: 1497694112}
   _maxGrabPoints: -1
@@ -15093,9 +15132,9 @@ MonoBehaviour:
   _whenSelect:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1497694113}
-        m_TargetAssemblyTypeName: HapticsBySpeeds, Assembly-CSharp
-        m_MethodName: BeginHaptics
+      - m_Target: {fileID: 1691344692}
+        m_TargetAssemblyTypeName: BothHandleGrabHaptics, Assembly-CSharp
+        m_MethodName: OnSelectChanged
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -15108,9 +15147,9 @@ MonoBehaviour:
   _whenUnselect:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1497694113}
-        m_TargetAssemblyTypeName: HapticsBySpeeds, Assembly-CSharp
-        m_MethodName: EndHaptics
+      - m_Target: {fileID: 1691344692}
+        m_TargetAssemblyTypeName: BothHandleGrabHaptics, Assembly-CSharp
+        m_MethodName: OnSelectChanged
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -15132,6 +15171,55 @@ MonoBehaviour:
   _whenSelectingInteractorViewRemoved:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1691344691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1691344682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2df7fce1de9b9a84f8327236c25b52ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cartPivot: {fileID: 2060618253}
+  _planeTransform: {fileID: 1497694112}
+  _localPlaneNormal: {x: 0, y: 1, z: 0}
+  _moveGain: 1
+  _yawGain: 1
+  _enableLeftLag: 1
+  _leftInteractorObject: {fileID: 755680529}
+  _posFollow: 6
+  _rotFollow: 6
+  _maxOffsetMeters: 0.15
+  _posJitterThreshold: 0.0005
+  _rotJitterThresholdDeg: 0.2
+--- !u!114 &1691344692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1691344682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 634ea50b9ff4d334a810b84bd9fc7ce5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grabbableComponent: {fileID: 1691344686}
+  leftInteractorRoot: {fileID: 755680529}
+  rightInteractorRoot: {fileID: 947936710}
+  useLinearVelocity: 1
+  speedThreshold: 0.03
+  leftSpeedMin: 0.05
+  leftSpeedMax: 1.5
+  leftAmpMin: 0.05
+  leftAmpMax: 0.8
+  leftFrequency: 0.7
+  rightAmp: 0.1
+  rightFrequency: 0.3
+  smoothing: 12
 --- !u!4 &1707276415 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6147449420076126336, guid: 0a7d2469f24041c4284c66706f84c45e,
