@@ -25,6 +25,7 @@ TagManager:
   - QDSUIDestructiveButton
   - Floor_Tile
   - Floor_Asphalt
+  - Cargo
   layers:
   - Default
   - TransparentFX
