@@ -8,12 +8,9 @@ public class CartWeightController : MonoBehaviour
     public DynamicWeightTwoGrabPlaneTransformer Transformer;
 
     [Header("Weight Step Settings")]
-    [Tooltip("사과가 0개일 때의 팔로우 속도 (높을수록 가벼움)")]
-    public float EmptyFollowSpeed = 40f;
-    [Tooltip("사과 1개당 감소시킬 속도 수치")]
-    public float DampingPerApple = 3.5f;
-    [Tooltip("최대로 무거워졌을 때의 한계치 (너무 낮으면 조작 불능)")]
-    public float MaxHeavyLimit = 3f;
+    public float BaseSpeed = 20f;      // [수정] 초기 속도 20
+    public float DampingPerApple = 5f; // [수정] 사과 개당 감소량 5
+    public float MinSpeedLimit = 1.5f; // 최소 한계치
 
     private HashSet<GameObject> _apples = new HashSet<GameObject>();
 
@@ -22,7 +19,7 @@ public class CartWeightController : MonoBehaviour
         if (other.CompareTag("Apple") && !_apples.Contains(other.gameObject))
         {
             _apples.Add(other.gameObject);
-            ApplyWeight();
+            UpdateWeight();
         }
     }
 
@@ -31,16 +28,24 @@ public class CartWeightController : MonoBehaviour
         if (other.CompareTag("Apple") && _apples.Contains(other.gameObject))
         {
             _apples.Remove(other.gameObject);
-            ApplyWeight();
+            UpdateWeight();
         }
     }
 
-    private void ApplyWeight()
+    private void UpdateWeight()
     {
-        float newSpeed = Mathf.Max(MaxHeavyLimit, EmptyFollowSpeed - (_apples.Count * DampingPerApple));
+        // 20 - (사과 개수 * 5)
+        float targetSpeed = BaseSpeed - (_apples.Count * DampingPerApple);
+        float finalSpeed = Mathf.Max(MinSpeedLimit, targetSpeed);
 
-        // 이 부분을 수정합니다.
-        Transformer.LeftPosFollow = newSpeed;
-        Transformer.LeftYawFollow = newSpeed;
+        if (Transformer != null)
+        {
+            // [중요] 오직 LeftPosFollow만 수정합니다.
+            Transformer.LeftPosFollow = finalSpeed;
+
+            // LeftYawFollow는 건드리지 않습니다. (1.5 유지)
+        }
+
+        Debug.Log($"[Weight] 사과 개수: {_apples.Count} | 현재 PosFollow: {finalSpeed} | YawFollow: {Transformer.LeftYawFollow}");
     }
 }
