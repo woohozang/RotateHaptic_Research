@@ -26,6 +26,7 @@ TagManager:
   - Floor_Tile
   - Floor_Asphalt
   - Cargo
+  - Apple
   layers:
   - Default
   - TransparentFX
