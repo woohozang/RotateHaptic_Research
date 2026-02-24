@@ -19,6 +19,20 @@ public class CartWeightController : MonoBehaviour
         if (other.CompareTag("Apple") && !_apples.Contains(other.gameObject))
         {
             _apples.Add(other.gameObject);
+
+            // 1. 박스의 자식으로 설정
+            other.transform.SetParent(this.transform);
+
+            // 2. 물리 연산 중지 (뚫림 방지 핵심)
+            Rigidbody appleRb = other.GetComponent<Rigidbody>();
+            Collider appleCl = other.GetComponent<Collider>();
+            if (appleRb != null)
+            {
+                appleRb.isKinematic = true; // 물리 엔진 대신 부모의 트랜스폼을 따름
+                appleRb.useGravity = false;
+                appleCl.isTrigger = true;
+            }
+
             UpdateWeight();
         }
     }
@@ -28,6 +42,20 @@ public class CartWeightController : MonoBehaviour
         if (other.CompareTag("Apple") && _apples.Contains(other.gameObject))
         {
             _apples.Remove(other.gameObject);
+
+            // 1. 자식 해제 (다시 독립 오브젝트로)
+            other.transform.SetParent(null);
+
+            // 2. 물리 연산 재개
+            Rigidbody appleRb = other.GetComponent<Rigidbody>();
+            Collider appleCl = other.GetComponent<Collider>();
+            if (appleRb != null)
+            {
+                appleRb.isKinematic = false;
+                appleRb.useGravity = true;
+                appleCl.isTrigger = false;
+            }
+
             UpdateWeight();
         }
     }
