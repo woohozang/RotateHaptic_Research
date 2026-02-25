@@ -6,6 +6,7 @@ public class CartWeightController : MonoBehaviour
 {
     [Header("References")]
     public DynamicWeightTwoGrabPlaneTransformer Transformer;
+    public Transform AppleContatiner;
 
     [Header("Weight Step Settings")]
     public float BaseSpeed = 20f;      // [수정] 초기 속도 20
@@ -21,8 +22,9 @@ public class CartWeightController : MonoBehaviour
             _apples.Add(other.gameObject);
 
             // 1. 박스의 자식으로 설정
-            other.transform.SetParent(this.transform);
+            other.transform.SetParent(AppleContatiner, true);
 
+            other.transform.localScale = Vector3.one;
             // 2. 물리 연산 중지 (뚫림 방지 핵심)
             Rigidbody appleRb = other.GetComponent<Rigidbody>();
             Collider appleCl = other.GetComponent<Collider>();
