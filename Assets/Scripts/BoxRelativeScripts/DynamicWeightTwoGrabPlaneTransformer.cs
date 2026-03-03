@@ -6,15 +6,25 @@ namespace Oculus.Interaction
 {
     public class DynamicWeightTwoGrabPlaneTransformer : MonoBehaviour, ITransformer
     {
+        public enum TargetLagSide { Left, Right }
+
+        [Header("Strategic Settings")]
+        [Tooltip("상자의 위치에 따라 선택하세요. Left면 왼쪽 핸들, Right면 오른쪽 핸들이 무거워집니다.")]
+        public TargetLagSide CurrentTargetSide = TargetLagSide.Left;
+
         [SerializeField, Optional] private Transform _planeTransform = null;
         [SerializeField, Optional] private Vector3 _localPlaneNormal = new Vector3(0, 1, 0);
 
         [Header("Left lag Settings")]
-        [Range(0.5f, 40f)] public float LeftYawFollow = 20f;
-        [Range(0.5f, 40f)] public float LeftPosFollow = 20f;
+        [Range(0.5f, 40f)] public float LeftYawFollow = 1.5f; //
+        [Range(0.5f, 40f)] public float LeftPosFollow = 20f; //
 
-        [Header("Left hand identification")]
-        [SerializeField] private Transform _leftReference = null;
+        [Header("Left hand identification References")]
+        [SerializeField] private Transform _leftGrabPoint;  // BothHandle/LeftGrabPoint 연결
+        [SerializeField] private Transform _rightGrabPoint; // BothHandle/RightGrabPoint 연결
+
+        // 기존 코드의 로직 유지를 위한 변수 (내부용)
+        private Transform _leftReference;
 
         public struct TwoGrabPlaneState { public Pose Center; public float PlanarDistance; }
         public void Initialize(IGrabbable grabbable) => _grabbable = grabbable;
@@ -29,6 +39,10 @@ namespace Oculus.Interaction
         public void BeginTransform()
         {
             var target = _grabbable.Transform;
+
+            // 1. [수정 사항] 설정에 따라 기준점을 실시간으로 교체
+            _leftReference = (CurrentTargetSide == TargetLagSide.Left) ? _leftGrabPoint : _rightGrabPoint;
+
             GetLeftRightPositions(_grabbable.GrabPoints[0].position, _grabbable.GrabPoints[1].position, out Vector3 leftPos, out Vector3 rightPos);
             _leftLagPos = leftPos; _hasLagInit = true;
 
@@ -39,13 +53,17 @@ namespace Oculus.Interaction
             _laggedPlanarDelta = (Vector3.ProjectOnPlane(rightPos, planeNormal) - Vector3.ProjectOnPlane(_leftLagPos, planeNormal));
             _hasDeltaInit = true;
 
-            // 시작 시 초기 설정 강제 고정
+            // 시작 시 초기 설정 강제 고정 (기존 유지)
             target.localScale = Vector3.one * 1.2f;
         }
 
         public void UpdateTransform()
         {
             var target = _grabbable.Transform;
+
+            // 2. [수정 사항] 매 프레임 상자 위치(TargetSide)에 맞춰 기준점 갱신
+            _leftReference = (CurrentTargetSide == TargetLagSide.Left) ? _leftGrabPoint : _rightGrabPoint;
+
             GetLeftRightPositions(_grabbable.GrabPoints[0].position, _grabbable.GrabPoints[1].position, out Vector3 leftPos, out Vector3 rightPos);
             if (!_hasLagInit) { _leftLagPos = leftPos; _hasLagInit = true; }
 
@@ -55,20 +73,19 @@ namespace Oculus.Interaction
             var planeNormal = _planeTransform != null ? _planeTransform.TransformDirection(_localPlaneNormal).normalized : target.TransformDirection(_localPlaneNormal).normalized;
             var state = TwoGrabPlane_WithLaggedDelta(_leftLagPos, rightPos, planeNormal, ref _laggedPlanarDelta, ref _hasDeltaInit, LeftYawFollow);
 
-            // 위치 계산 후 Y축을 0으로 강제 고정 (핵심 수정 사항)
             Pose result = AlignLocalToWorldPose(target.localToWorldMatrix, _localToTarget, state.Center);
 
-            // X, Z는 계산된 값을 따르고, Y는 무조건 0으로 고정합니다.
+            // X, Z는 계산된 값을 따르고, Y는 무조건 0으로 고정 (기존 유지)
             target.position = new Vector3(result.position.x, 0f, result.position.z);
             target.rotation = result.rotation;
 
-            // 스케일도 1.2로 계속 유지
+            // 스케일도 1.2로 계속 유지 (기존 유지)
             target.localScale = Vector3.one * 1.2f;
         }
 
         public void EndTransform() { }
 
-        // --- Helper Methods (변경 없음) ---
+        // --- 기존 Helper Methods (변경 없음) ---
         private static TwoGrabPlaneState TwoGrabPlane_WithLaggedDelta(Vector3 leftP, Vector3 rightP, Vector3 planeNormal, ref Vector3 laggedDelta, ref bool hasInit, float yawFollow)
         {
             Vector3 centroid = leftP * 0.5f + rightP * 0.5f;
@@ -81,6 +98,7 @@ namespace Oculus.Interaction
 
         private void GetLeftRightPositions(Vector3 pA, Vector3 pB, out Vector3 left, out Vector3 right)
         {
+            // 내부적으로 설정된 _leftReference와의 거리를 비교합니다.
             if (_leftReference == null) { left = pA; right = pB; return; }
             if ((pA - _leftReference.position).sqrMagnitude <= (pB - _leftReference.position).sqrMagnitude) { left = pA; right = pB; }
             else { left = pB; right = pA; }
