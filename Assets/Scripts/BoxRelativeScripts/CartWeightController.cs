@@ -13,8 +13,35 @@ public class CartWeightController : MonoBehaviour
     public float DampingPerApple = 5f; // [수정] 사과 개당 감소량 5
     public float MinSpeedLimit = 1.5f; // 최소 한계치
 
+    [Header("Weight State")]
+    [SerializeField] private int _currentAppleCount = 0;
+
     private HashSet<GameObject> _apples = new HashSet<GameObject>();
 
+    public int GetCurrentAppleCount()
+    {
+        return _currentAppleCount;
+    }
+
+    // 사과가 상자의 트리거에 들어왔을 때 호출 (Trigger 스크립트에서 호출)
+    public void AddApple()
+    {
+        _currentAppleCount++;
+        Debug.Log($"[Weight] 사과 추가! 현재 개수: {_currentAppleCount}");
+    }
+
+    // 사과가 상자 밖으로 나갔을 때 호출
+    public void RemoveApple()
+    {
+        _currentAppleCount = Mathf.Max(0, _currentAppleCount - 1);
+        Debug.Log($"[Weight] 사과 제거! 현재 개수: {_currentAppleCount}");
+    }
+
+    // 테스트용: 인스펙터에서 개수를 직접 조절하고 싶을 때
+    public void SetAppleCount(int count)
+    {
+        _currentAppleCount = count;
+    }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Apple") && !_apples.Contains(other.gameObject))
