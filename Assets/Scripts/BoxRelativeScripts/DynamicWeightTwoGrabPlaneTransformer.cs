@@ -110,5 +110,20 @@ namespace Oculus.Interaction
             Vector3 delta = Vector3.ProjectOnPlane(p1, planeNormal) - Vector3.ProjectOnPlane(p0, planeNormal);
             return new TwoGrabPlaneState() { Center = new Pose(centroid, Quaternion.LookRotation(delta, planeNormal)), PlanarDistance = delta.magnitude };
         }
+        //햅틱 로직에 필요
+        public float GetCurrentLagDistance()
+        {
+            GetLeftRightPositions(_grabbable.GrabPoints[0].position, _grabbable.GrabPoints[1].position, out Vector3 leftPos, out Vector3 rightPos);
+            Vector3 currentTargetPos = (CurrentTargetSide == TargetLagSide.Left) ? leftPos : rightPos;
+
+            // 실제 손 위치와 지연된 위치 사이의 월드 거리 반환
+            return Vector3.Distance(_leftLagPos, currentTargetPos);
+        }
+        public void ResetLagState()
+        {
+            _hasLagInit = false; // 다음 Update에서 새로운 손 위치로 즉시 점프하도록 함
+            _hasDeltaInit = false;
+            Debug.Log("[Transformer] 손 교체에 따른 지연 상태 초기화 완료");
+        }
     }
 }
