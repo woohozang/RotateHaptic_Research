@@ -1,75 +1,49 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using static Oculus.Interaction.TransformerUtils;
 
 namespace Oculus.Interaction
 {
-    /// <summary>
-    /// SDK 81 TwoGrabPlaneTransformer ±â¹İ (¾ç¼Õ Á¶ÀÛ °¡Á¤)
-    /// - Cargo(¿¹: Sphere) À§Ä¡¸¦ CartPivot ·ÎÄÃ X·Î ÆÇÁ¤
-    /// - Center ¾øÀÌ Left/Right¸¸ »ç¿ë (²÷±è °¨¼Ò)
-    /// - Left »óÅÂ: "¿Ş¼Õ grab point"¸¸ Áö¿¬(Lag)
-    /// - Right »óÅÂ: "¿À¸¥¼Õ grab point"¸¸ Áö¿¬(Lag)
-    ///
-    /// Áß¿ä:
-    /// - _leftGrabPointRef / _rightGrabPointRef ¸¦ ¹İµå½Ã ¿¬°áÇÏ¸é
-    ///   ¿Ş¼Õ/¿À¸¥¼Õ ¸ÅÇÎÀÌ 100% ¾ÈÁ¤ÀûÀ¸·Î µ¿ÀÛÇÕ´Ï´Ù.
-    /// </summary>
     public class DynamicTwoGrab : MonoBehaviour, ITransformer
     {
-        [Header("Plane (same as TwoGrabPlaneTransformer)")]
+        [Header("Plane")]
         [SerializeField, Optional] private Transform _planeTransform = null;
         [SerializeField, Optional] private Vector3 _localPlaneNormal = new Vector3(0, 1, 0);
 
-        [Serializable]
-        public class TwoGrabPlaneConstraints
-        {
-            public FloatConstraint MaxScale;
-            public FloatConstraint MinScale;
-            public FloatConstraint MaxY;
-            public FloatConstraint MinY;
-        }
-
-        [SerializeField] private TwoGrabPlaneConstraints _constraints;
-
-        [Header("Refs (required)")]
-        [Tooltip("Ä«Æ® Áß½É ±âÁØ Transform (CartPivot ÃßÃµ)")]
+        [Header("Refs")]
         [SerializeField] private Transform _cartPivot;
-
-        [Tooltip("ÁÂ/¿ì¸¦ ÆÇÁ¤ÇÒ µ¿Àû ¹°Ã¼ Transform (Sphere µî, Ä«Æ®ÀÇ ÀÚ½ÄÀÌ ¾Æ´Ï¾îµµ µÊ)")]
         [SerializeField] private Transform _cargoObject;
 
-        [Header("Left/Right GrabPoint Refs (strongly recommended)")]
-        [Tooltip("¿Ş¼Õ ÂÊ ±×·¦ Æ÷ÀÎÆ® ¸¶Ä¿ Transform (LeftGrabPoint)")]
+        [Header("Grab Points")]
         [SerializeField] private Transform _leftGrabPointRef;
-
-        [Tooltip("¿À¸¥¼Õ ÂÊ ±×·¦ Æ÷ÀÎÆ® ¸¶Ä¿ Transform (RightGrabPoint)")]
         [SerializeField] private Transform _rightGrabPointRef;
 
-        [Header("Switch zone (hysteresis, no Center)")]
-        [Tooltip("ÇöÀç LeftÀÏ ¶§ x°¡ +zoneÀ» ³ÑÀ¸¸é Right·Î ÀüÈ¯ / RightÀÏ ¶§ x°¡ -zoneÀ» ³ÑÀ¸¸é Left·Î ÀüÈ¯")]
-        [SerializeField] private float _switchZone = 0.05f;
+        [Header("Switch")]
+        [SerializeField] private float _switchZone = 0.02f;
 
-        public enum BalanceState { Left, Right }
-        [SerializeField] private BalanceState _state = BalanceState.Left;
+        [Header("Lag (ë¬´ê²Œê°)")]
+        [SerializeField] private float _leftFollow = 1f;
+        [SerializeField] private float _rightFollow = 1f;
 
-        [Header("Lag tuning (smaller = heavier/slower)")]
-        [SerializeField] private float _leftFollow = 5f;   // Left »óÅÂÀÏ ¶§ ¿Ş¼Õ lag °­µµ(³·À»¼ö·Ï ´õ ¹«°Å¿ò)
-        [SerializeField] private float _rightFollow = 5f;  // Right »óÅÂÀÏ ¶§ ¿À¸¥¼Õ lag °­µµ
+        [Header("Offset Strength")]
+        [SerializeField] private float _offsetForce = 0.15f;
 
-        [Header("Jitter threshold")]
+        [Header("Jitter")]
         [SerializeField] private float _posJitterThreshold = 0.0005f;
 
         private IGrabbable _grabbable;
 
-        // base state copied from TwoGrabPlaneTransformer
         private Pose _localToTarget;
         private float _localMagnitudeToTarget;
 
-        // filtered grab point positions
         private Vector3 _filtA;
         private Vector3 _filtB;
         private bool _filterInitialized;
+
+        private float _fixedY;
+
+        private enum BalanceState { Left, Right }
+        private BalanceState _state = BalanceState.Left;
 
         public void Initialize(IGrabbable grabbable)
         {
@@ -85,6 +59,9 @@ namespace Oculus.Interaction
         public void BeginTransform()
         {
             var target = _grabbable.Transform;
+
+            // ğŸ”¥ Y ê³ ì • ê°’ ì €ì¥
+            _fixedY = target.position.y;
 
             var grabA = _grabbable.GrabPoints[0];
             var grabB = _grabbable.GrabPoints[1];
@@ -102,12 +79,13 @@ namespace Oculus.Interaction
 
         public void UpdateTransform()
         {
-            if (_grabbable == null || _grabbable.GrabPoints == null || _grabbable.GrabPoints.Count < 2)
+            if (_grabbable == null || _grabbable.GrabPoints.Count < 2)
                 return;
 
             UpdateBalanceStateLR();
 
             var target = _grabbable.Transform;
+
             Vector3 rawA = _grabbable.GrabPoints[0].position;
             Vector3 rawB = _grabbable.GrabPoints[1].position;
 
@@ -118,62 +96,56 @@ namespace Oculus.Interaction
                 _filterInitialized = true;
             }
 
-            // "¿Ş¼Õ grab point index"¸¦ È®Á¤ (0 ¶Ç´Â 1)
             int leftIdx = ResolveLeftIdx(rawA, rawB);
 
-            // »óÅÂ¿¡ µû¶ó ¿Ş¼Õ or ¿À¸¥¼Õ¿¡¸¸ lag¸¦ Àû¿ë
-            float followA = GetFollowForIndex(index: 0, leftIdx);
-            float followB = GetFollowForIndex(index: 1, leftIdx);
+            float followA = GetFollowForIndex(0, leftIdx);
+            float followB = GetFollowForIndex(1, leftIdx);
 
-            // micro jitter ignore
             float jt2 = _posJitterThreshold * _posJitterThreshold;
             if ((rawA - _filtA).sqrMagnitude < jt2) rawA = _filtA;
             if ((rawB - _filtB).sqrMagnitude < jt2) rawB = _filtB;
 
-            // exp smoothing
             _filtA = ExpFollow(_filtA, rawA, followA, Time.deltaTime);
             _filtB = ExpFollow(_filtB, rawB, followB, Time.deltaTime);
 
+            // ğŸ”¥ COM ê¸°ë°˜ ì˜¤í”„ì…‹ ê°•í™”
+            float bias = 0f;
+            if (_cartPivot != null && _cargoObject != null)
+            {
+                float x = _cartPivot.InverseTransformPoint(_cargoObject.position).x;
+                bias = Mathf.Clamp(x * 10f, -1f, 1f);
+            }
+
+            Vector3 dir = _cartPivot.right * bias;
+
+            // ğŸ”¥ ê°•í•œ ì˜¤í”„ì…‹ ì ìš©
+            Vector3 offset = dir * _offsetForce;
+
+            _filtA += offset;
+            _filtB += offset;
+
+            // ğŸ”¥ ì¶”ê°€ ê°•ì œ ë°€ë¦¼ (ì²´ê° ê°•í™”)
+            _filtA += dir * 0.02f;
+            _filtB += dir * 0.02f;
+
             var planeNormal = WorldPlaneNormal();
-            var twoGrabPlaneState = TwoGrabPlane(_filtA, _filtB, planeNormal);
+            var state = TwoGrabPlane(_filtA, _filtB, planeNormal);
 
-            // --- Below: same flow as SDK81 TwoGrabPlaneTransformer (scale/pose/constraints) ---
-            float prevDistInWorld = LocalToWorldMagnitude(_localMagnitudeToTarget, target.localToWorldMatrix);
-            float scaleDelta = prevDistInWorld != 0 ? twoGrabPlaneState.PlanarDistance / prevDistInWorld : 1f;
+            float prevDist = LocalToWorldMagnitude(_localMagnitudeToTarget, target.localToWorldMatrix);
+            float scaleDelta = prevDist != 0 ? state.PlanarDistance / prevDist : 1f;
 
-            float targetScale = scaleDelta * target.localScale.x;
-            if (_constraints != null)
-            {
-                if (_constraints.MinScale.Constrain) targetScale = Mathf.Max(_constraints.MinScale.Value, targetScale);
-                if (_constraints.MaxScale.Constrain) targetScale = Mathf.Min(_constraints.MaxScale.Value, targetScale);
-            }
+            Pose result = AlignLocalToWorldPose(target.localToWorldMatrix, _localToTarget, state.Center);
 
-            // ¿øº»°ú µ¿ÀÏÇÏ°Ô localScale.x¸¦ ±âÁØÀ¸·Î ºñÀ² À¯Áö
-            if (_constraints != null)
-            {
-                target.localScale = (targetScale / target.localScale.x) * target.localScale;
-            }
+            // ğŸ”¥ Yì¶• ì™„ì „ ê³ ì • (í•µì‹¬)
+            Vector3 fixedPos = result.position;
+            fixedPos.y = _fixedY;
 
-            Pose result = AlignLocalToWorldPose(target.localToWorldMatrix, _localToTarget, twoGrabPlaneState.Center);
-            target.position = result.position;
+            target.position = fixedPos;
             target.rotation = result.rotation;
-
-            if (_constraints != null)
-            {
-                target.position = ConstrainAlongDirection(
-                    target.position,
-                    target.parent != null ? target.parent.position : Vector3.zero,
-                    planeNormal,
-                    _constraints.MinY,
-                    _constraints.MaxY);
-            }
         }
 
         public void EndTransform() { }
 
-        // ------------------------
-        // Left/Right only balance logic (no Center)
-        // ------------------------
         private void UpdateBalanceStateLR()
         {
             if (_cartPivot == null || _cargoObject == null) return;
@@ -182,68 +154,37 @@ namespace Oculus.Interaction
 
             if (_state == BalanceState.Left)
             {
-                // ¿À¸¥ÂÊÀ¸·Î ÃæºĞÈ÷ ³Ñ¾î°¡¾ß Right·Î ÀüÈ¯
                 if (x > _switchZone) _state = BalanceState.Right;
             }
-            else // Right
+            else
             {
-                // ¿ŞÂÊÀ¸·Î ÃæºĞÈ÷ ³Ñ¾î°¡¾ß Left·Î ÀüÈ¯
                 if (x < -_switchZone) _state = BalanceState.Left;
             }
         }
 
-        /// <summary>
-        /// rawA/rawB Áß ¾î´À ÂÊÀÌ "¿Ş¼Õ grab point"ÀÎÁö È®Á¤.
-        /// - _leftGrabPointRef°¡ ÀÖÀ¸¸é ±×°Í¿¡ ´õ °¡±î¿î ÂÊÀ» Left·Î º½(±ÇÀå)
-        /// - ¾øÀ¸¸é cartPivot ±âÁØ localX·Î ´õ ¿ŞÂÊ(X°¡ ÀÛÀº ÂÊ)À» Left·Î º½
-        /// </summary>
         private int ResolveLeftIdx(Vector3 rawA, Vector3 rawB)
         {
-            if (_leftGrabPointRef != null)
-            {
-                float aToLeft = (rawA - _leftGrabPointRef.position).sqrMagnitude;
-                float bToLeft = (rawB - _leftGrabPointRef.position).sqrMagnitude;
-                return (aToLeft <= bToLeft) ? 0 : 1;
-            }
-
-            if (_cartPivot != null)
-            {
-                float ax = _cartPivot.InverseTransformPoint(rawA).x;
-                float bx = _cartPivot.InverseTransformPoint(rawB).x;
-                return (ax <= bx) ? 0 : 1;
-            }
-
-            return (rawA.x <= rawB.x) ? 0 : 1;
+            float aToLeft = (rawA - _leftGrabPointRef.position).sqrMagnitude;
+            float bToLeft = (rawB - _leftGrabPointRef.position).sqrMagnitude;
+            return (aToLeft <= bToLeft) ? 0 : 1;
         }
 
         private float GetFollowForIndex(int index, int leftIdx)
         {
-            bool isLeftPoint = (index == leftIdx);
+            bool isLeft = (index == leftIdx);
 
-            // Left »óÅÂ¸é "¿Ş¼Õ Æ÷ÀÎÆ®"¸¸ lag, Right »óÅÂ¸é "¿À¸¥¼Õ Æ÷ÀÎÆ®"¸¸ lag
-            bool lagLeft = (_state == BalanceState.Left);
-            bool lagRight = (_state == BalanceState.Right);
-
-            if (isLeftPoint)
-            {
-                return lagLeft ? Mathf.Max(0.01f, _leftFollow) : 9999f;
-            }
+            if (_state == BalanceState.Left)
+                return isLeft ? _leftFollow : 9999f;
             else
-            {
-                return lagRight ? Mathf.Max(0.01f, _rightFollow) : 9999f;
-            }
+                return isLeft ? 9999f : _rightFollow;
         }
 
         private static Vector3 ExpFollow(Vector3 current, Vector3 target, float follow, float dt)
         {
-            // follow°¡ Å¬¼ö·Ï ºü¸£°Ô µû¶ó°¨. 9999¸é °ÅÀÇ Áï½Ã.
             float a = 1f - Mathf.Exp(-follow * dt);
             return Vector3.Lerp(current, target, a);
         }
 
-        // ------------------------
-        // SDK81 helper (unchanged)
-        // ------------------------
         public struct TwoGrabPlaneState
         {
             public Pose Center;
@@ -252,19 +193,20 @@ namespace Oculus.Interaction
 
         public static TwoGrabPlaneState TwoGrabPlane(Vector3 p0, Vector3 p1, Vector3 planeNormal)
         {
-            Vector3 centroid = p0 * 0.5f + p1 * 0.5f;
+            Vector3 centroid = (p0 + p1) * 0.5f;
 
             Vector3 p0planar = Vector3.ProjectOnPlane(p0, planeNormal);
             Vector3 p1planar = Vector3.ProjectOnPlane(p1, planeNormal);
 
             Vector3 planarDelta = p1planar - p0planar;
-            Quaternion poseDir = planarDelta.sqrMagnitude > 1e-8f
+
+            Quaternion rotation = planarDelta.sqrMagnitude > 1e-8f
                 ? Quaternion.LookRotation(planarDelta, planeNormal)
-                : Quaternion.LookRotation(Vector3.forward, planeNormal);
+                : Quaternion.identity;
 
             return new TwoGrabPlaneState()
             {
-                Center = new Pose(centroid, poseDir),
+                Center = new Pose(centroid, rotation),
                 PlanarDistance = planarDelta.magnitude
             };
         }
