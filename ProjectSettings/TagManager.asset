@@ -27,6 +27,8 @@ TagManager:
   - Floor_Asphalt
   - Cargo
   - Apple
+  - LeftBump
+  - RightBump
   layers:
   - Default
   - TransparentFX
