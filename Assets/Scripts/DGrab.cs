@@ -114,8 +114,15 @@ namespace Oculus.Interaction
             float leftWeight = Mathf.Clamp01(-_smoothedBias);
             float rightWeight = Mathf.Clamp01(_smoothedBias);
 
+          
+
             float currentLeftPosFollow = Mathf.Lerp(INSTANT_FOLLOW, _leftPosFollow, leftWeight);
             float currentRightPosFollow = Mathf.Lerp(INSTANT_FOLLOW, _rightPosFollow, rightWeight);
+
+            _leftLagPos = ExpFollow(_leftLagPos, left, currentLeftPosFollow);
+            _rightLagPos = ExpFollow(_rightLagPos, right, currentRightPosFollow);
+            
+           
 
             _leftLagPos = ExpFollow(_leftLagPos, left, currentLeftPosFollow);
             _rightLagPos = ExpFollow(_rightLagPos, right, currentRightPosFollow);

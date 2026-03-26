@@ -26,6 +26,7 @@ public class SplineColliderBuilder : MonoBehaviour
             col.transform.rotation = Quaternion.LookRotation(dir);
 
             BoxCollider bc = col.AddComponent<BoxCollider>();
+            bc.isTrigger = true;
             bc.size = new Vector3(width, 0.1f, dir.magnitude);
         }
     }
