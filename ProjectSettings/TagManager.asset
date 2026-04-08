@@ -29,6 +29,7 @@ TagManager:
   - Apple
   - LeftBump
   - RightBump
+  - Shelf
   layers:
   - Default
   - TransparentFX
@@ -37,7 +38,7 @@ TagManager:
   - Water
   - UI
   - Floor
-  - 
+  - Shelf
   - InteractorHand
   - InteractableObject
   - 

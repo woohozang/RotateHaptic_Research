@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class CargoSwayByTurnAngle : MonoBehaviour
 {
@@ -7,25 +7,29 @@ public class CargoSwayByTurnAngle : MonoBehaviour
     public Transform cargoObject;
 
     [Header("Turn Accumulation")]
-    public float angleToOffset = 0.0025f;   // È¸Àü °¢µµ¸¦ x ¿ÀÇÁ¼ÂÀ¸·Î ¹Ù²Ù´Â ºñÀ²
-    public float maxOffsetX = 0.18f;        // ÃÖ´ë ÁÂ¿ì ÀÌµ¿
-    public float deadZone = 0.2f;           // ³Ê¹« ÀÛÀº È¸Àü ¹«½Ã
+    public float angleToOffset = 0.0025f;   // íšŒì „ ê°ë„ë¥¼ x ì˜¤í”„ì…‹ìœ¼ë¡œ ë°”ê¾¸ëŠ” ë¹„ìœ¨
+    public float maxOffsetX = 0.18f;        // ìµœëŒ€ ì¢Œìš° ì´ë™
+    public float deadZone = 0.2f;           // ë„ˆë¬´ ì‘ì€ íšŒì „ ë¬´ì‹œ
 
     [Header("Spring Physics")]
-    public float springStrength = 18f;      // ¸ñÇ¥ À§Ä¡·Î °¡´Â Èû
-    public float damping = 7f;              // °¨¼è
-    public float mass = 1f;                 // ¹«°Ô°¨
+    public float springStrength = 18f;      // ëª©í‘œ ìœ„ì¹˜ë¡œ ê°€ëŠ” í˜
+    public float damping = 7f;              // ê°ì‡ 
+    public float mass = 1f;                 // ë¬´ê²Œê°
 
     [Header("Bump Impact")]
-    public float bumpForce = 0.08f;         // ¹æÁöÅÎ ¼ø°£ Ãæ°İ·®
+    public float bumpForce = 0.08f;         // ë°©ì§€í„± ìˆœê°„ ì¶©ê²©ëŸ‰
+
+    [Header("Smoothing")]
+    [Tooltip("ëª©í‘œ ì§€ì  ìì²´ê°€ ë³€í•˜ëŠ” ì†ë„. ë‚®ì„ìˆ˜ë¡ ë¬´ê²Œì¶”ì˜ ë°˜ì‘ì´ ë¬µì§í•˜ê³  ë¶€ë“œëŸ¬ì›Œì§‘ë‹ˆë‹¤.")]
+    public float targetLerpSpeed = 5f;
 
     private Vector3 _initialLocalPos;
     private float _prevYaw;
 
-    // ´©Àû È¸Àü·®
+    // ëˆ„ì  íšŒì „ëŸ‰
     private float _turnAccumulator;
 
-    // ½ÇÁ¦ ÀÌµ¿ »óÅÂ
+    // ì‹¤ì œ ì´ë™ ìƒíƒœ
     private float _currentOffsetX;
     private float _currentVelocityX;
 
@@ -45,23 +49,28 @@ public class CargoSwayByTurnAngle : MonoBehaviour
         float dt = Time.deltaTime;
         if (dt <= 0f) return;
 
-        // 1. yaw º¯È­·® ÃøÁ¤
+        // 1. yaw ë³€í™”ëŸ‰ ì¸¡ì • (ê¸°ì¡´ê³¼ ë™ì¼)
         float currentYaw = NormalizeAngle(cartRoot.eulerAngles.y);
         float deltaYaw = Mathf.DeltaAngle(_prevYaw, currentYaw);
         _prevYaw = currentYaw;
 
-        // 2. È¸Àü·® ´©Àû
+        // 2. ğŸ”¥ ê°œì„ ëœ íšŒì „ëŸ‰ ëˆ„ì  (ë°ë“œì¡´ ë¶€ë“œëŸ½ê²Œ ì²˜ë¦¬)
+        // í•˜ë“œí•˜ê²Œ ëŠì§€ ì•Šê³ , ë°ë“œì¡´ì„ ëº€ ë‚˜ë¨¸ì§€ ê°’ë§Œ ë¶€ë“œëŸ½ê²Œ ë”í•´ì§€ë„ë¡ ìˆ˜ì • ê°€ëŠ¥
         if (Mathf.Abs(deltaYaw) > deadZone)
         {
             _turnAccumulator += deltaYaw;
         }
 
-        // 3. ¸ñÇ¥ ¿ÀÇÁ¼Â °è»ê
-        float targetOffsetX = _turnAccumulator * angleToOffset;
-        targetOffsetX = Mathf.Clamp(targetOffsetX, -maxOffsetX, maxOffsetX);
+        // 3. ğŸ”¥ ëª©í‘œ ì˜¤í”„ì…‹ ê³„ì‚° ë° ë³´ê°„ (í•µì‹¬ ìˆ˜ì •)
+        float rawTargetX = _turnAccumulator * angleToOffset;
+        rawTargetX = Mathf.Clamp(rawTargetX, -maxOffsetX, maxOffsetX);
 
-        // 4. spring-damper·Î ÀÚ¿¬½º·´°Ô µû¶ó°¨
-        float displacement = _currentOffsetX - targetOffsetX;
+        // ğŸ’¡ [ì¶”ê°€ëœ ë¡œì§] ëª©í‘œ ì§€ì (Target) ìì²´ë¥¼ Lerpë¡œ ë¶€ë“œëŸ½ê²Œ ì´ë™ì‹œí‚´
+        // ì´ë ‡ê²Œ í•˜ë©´ _turnAccumulatorê°€ íŠ€ì–´ë„ ìŠ¤í”„ë§ì˜ ëª©ì ì§€ê°€ ì„œì„œíˆ ì›€ì§ì…ë‹ˆë‹¤.
+        float smoothTargetX = Mathf.Lerp(_currentOffsetX, rawTargetX, dt * targetLerpSpeed);
+
+        // 4. spring-damper (ëª©í‘œê°’ì„ smoothTargetXë¡œ ë³€ê²½)
+        float displacement = _currentOffsetX - smoothTargetX;
         float force = (-springStrength * displacement) - (damping * _currentVelocityX);
         float acceleration = force / Mathf.Max(mass, 0.0001f);
 
@@ -69,12 +78,10 @@ public class CargoSwayByTurnAngle : MonoBehaviour
         _currentOffsetX += _currentVelocityX * dt;
         _currentOffsetX = Mathf.Clamp(_currentOffsetX, -maxOffsetX, maxOffsetX);
 
-        // 5. À§Ä¡ ¹İ¿µ
+        // 5. ìœ„ì¹˜ ë°˜ì˜ (ê¸°ì¡´ê³¼ ë™ì¼)
         Vector3 local = _initialLocalPos;
         local.x += _currentOffsetX;
         cargoObject.localPosition = local;
-
-        Debug.Log($"cartRoot yaw = {cartRoot.eulerAngles.y}, cargo localX = {cargoObject.localPosition.x}");
     }
 
     public void AddBumpImpulse(bool fromLeft)
