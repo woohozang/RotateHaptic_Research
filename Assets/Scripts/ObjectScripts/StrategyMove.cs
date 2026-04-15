@@ -13,6 +13,8 @@ public class StrategyMove : MonoBehaviour
 
     private bool _lastAnyGrabbed = false;
 
+    public GameObject Vignett;
+
     void Update()
     {
         if (locomotor == null || cartGrabbables == null || cartGrabbables.Length == 0)
@@ -41,11 +43,18 @@ public class StrategyMove : MonoBehaviour
             {
                 // 핵심: 이동 완전 차단 + 속도 초기화
                 locomotor.DisableMovement();
+                locomotor.DisableRotation();
+                Vignett.SetActive(false);
+                locomotor.DisableCrouch();
             }
             else
             {
                 //  다시 활성화 (자동으로 velocity 0됨)
                 locomotor.EnableMovement();
+                locomotor.EnableRotation();
+                Vignett.SetActive(true);
+                locomotor.EnableCrouch();
+                
             }
 
             _lastAnyGrabbed = anyGrabbed;
