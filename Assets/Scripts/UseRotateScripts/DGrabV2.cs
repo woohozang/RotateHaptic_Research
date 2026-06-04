@@ -27,11 +27,15 @@ namespace Oculus.Interaction
         [SerializeField] private float _yawFollowBase = 4.0f;
 
         // 저항이 없을 때의 즉각 추적 속도
-        private const float INSTANT_FOLLOW = 100f;
+        private const float INSTANT_FOLLOW = 20f;
 
         [Header("Smoothness Control")]
         [Tooltip("무게 변화에 따른 오프셋 전환 속도. 낮을수록 더 부드럽게 바뀝니다.")]
-        [SerializeField] private float _smoothingFactor = 5.0f;
+        [SerializeField] private float _smoothingFactor = 1.0f;
+
+        [Tooltip("편향이 햅틱/지연으로 변환되는 곡선. 높을수록 초반 변화가 부드럽습니다.")]
+        [SerializeField] private float _biasCurvePower = 2.8f;
+
         [Tooltip("최대 저항이 걸리는 거리 배율 (maxOffsetX가 0.18이면 5.5 추천)")]
         [SerializeField] private float _biasScale = 5.5f;
 
@@ -106,6 +110,7 @@ namespace Oculus.Interaction
             // 2. 🔥 S-곡선(SmoothStep)을 이용한 2차 보간 (급격한 꺾임 방지 핵심)
             float absBias = Mathf.Abs(_smoothedBias);
             float smoothedIntensity = Mathf.SmoothStep(0f, 1f, absBias);
+            smoothedIntensity = Mathf.Pow(smoothedIntensity, _biasCurvePower);
 
             // 방향에 따른 가중치 분리
             float leftWeight = (_smoothedBias < 0) ? smoothedIntensity : 0f;
