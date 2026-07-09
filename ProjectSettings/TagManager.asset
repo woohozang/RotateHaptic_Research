@@ -30,6 +30,7 @@ TagManager:
   - LeftBump
   - RightBump
   - Shelf
+  - Task2Obstacle
   layers:
   - Default
   - TransparentFX
