@@ -69983,7 +69983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cca7cd1673a2a42831bb1496792199, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cartRoot: {fileID: 914600648}
+  cartRoot: {fileID: 0}
   cargoObject: {fileID: 1833861545}
   angleToOffset: 0.0025
   maxOffsetX: 0.18
@@ -115608,8 +115608,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a839e1dc695aa9489f297f525e40891, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  centerEyeAnchor: {fileID: 2016223700}
-  grabbable: {fileID: 1848694192}
+  centerEyeAnchor: {fileID: 999690618}
+  grabbable: {fileID: 1831095988}
   speed: 1
 --- !u!1 &1656891340
 GameObject:
@@ -125097,13 +125097,19 @@ MonoBehaviour:
   cartRoot: {fileID: 371347485}
   cartPivot: {fileID: 1475121098}
   cargoObject: {fileID: 859353095}
-  weightFrictionScale: 0.5
-  velocitySensitivity: 0.3
-  rotationInertiaScale: 1.5
+  maxWeightOffsetX: 0.2
+  centerDeadZone: 0.015
+  biasCurvePower: 0.9
+  controllerSpeedDeadZone: 0.03
+  controllerSpeedForMax: 1.1
+  cartSpeedForMax: 0.7
+  yawSpeedForMax: 90
+  yawContribution: 0.45
   weakSideRatio: 0.2
   minForceAmp: 0.05
   maxForceAmp: 0.9
   fixedFrequency: 0.4
+  hapticSmoothing: 0.18
 --- !u!65 &1716190100
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -138551,13 +138557,19 @@ MonoBehaviour:
   cartRoot: {fileID: 999690618}
   cartPivot: {fileID: 1217276333}
   cargoObject: {fileID: 1158334872}
-  weightFrictionScale: 0.5
-  velocitySensitivity: 0.3
-  rotationInertiaScale: 1.5
+  maxWeightOffsetX: 0.2
+  centerDeadZone: 0.015
+  biasCurvePower: 0.9
+  controllerSpeedDeadZone: 0.03
+  controllerSpeedForMax: 1.1
+  cartSpeedForMax: 0.7
+  yawSpeedForMax: 90
+  yawContribution: 0.45
   weakSideRatio: 0.2
   minForceAmp: 0.05
   maxForceAmp: 0.9
   fixedFrequency: 0.4
+  hapticSmoothing: 0.18
 --- !u!1 &1831669660
 GameObject:
   m_ObjectHideFlags: 0
@@ -154519,7 +154531,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cca7cd1673a2a42831bb1496792199, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cartRoot: {fileID: 1338260963}
+  cartRoot: {fileID: 0}
   cargoObject: {fileID: 957884695}
   angleToOffset: 0.005
   maxOffsetX: 0.15
@@ -158910,7 +158922,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cca7cd1673a2a42831bb1496792199, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cartRoot: {fileID: 906239230}
+  cartRoot: {fileID: 0}
   cargoObject: {fileID: 699851042}
   angleToOffset: 0.005
   maxOffsetX: 0.15
