@@ -9411,7 +9411,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -10125,30 +10125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3477879848057f24ba75d5799d36abcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cartGrabbables:
-  - {fileID: 968330670}
-  - {fileID: 458910444}
-  - {fileID: 278547216}
-  - {fileID: 1691344686}
-  - {fileID: 551375483}
-  - {fileID: 1799002040}
-  - {fileID: 1338969825}
-  - {fileID: 1661185663}
-  - {fileID: 968784573}
-  - {fileID: 479396715}
-  - {fileID: 1765367864}
-  - {fileID: 438497066}
-  - {fileID: 662317138}
-  - {fileID: 504628934}
-  - {fileID: 483648009}
-  - {fileID: 80859772}
-  - {fileID: 214958612}
-  - {fileID: 590600487}
-  - {fileID: 762600988}
-  - {fileID: 1141499036}
-  - {fileID: 1839107233}
-  - {fileID: 155297071}
-  - {fileID: 589017485}
+  cartGrabbables: []
   locomotor: {fileID: 1264915995}
   requireTwoHands: 1
   Vignett: {fileID: 1566613254}
@@ -23379,7 +23356,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -35811,7 +35788,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -39769,18 +39746,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 457660182}
   m_Mesh: {fileID: 4300000, guid: 992de679fa1f1d44294f387158dc0519, type: 3}
---- !u!114 &458910444 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5541050277243711448, guid: b87bc381b0b074a44a0e0195ad2322fa,
-    type: 3}
-  m_PrefabInstance: {fileID: 843027275518126408}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43f86b14a27b52f4f9298c33015b5c26, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &459241163
 GameObject:
   m_ObjectHideFlags: 0
@@ -40533,7 +40498,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: e1aa05660c7f2ba48ad235047edcecfc,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -41073,6 +41038,7 @@ GameObject:
   - component: {fileID: 479396713}
   - component: {fileID: 479396712}
   - component: {fileID: 479396711}
+  - component: {fileID: 479396718}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -41104,7 +41070,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 479396709}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e94d0a40ec182cf4896118177ed98168, type: 3}
   m_Name: 
@@ -41270,6 +41236,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &479396718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 479396709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2a7d909f857ec43bad523165c349f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabbable: {fileID: 479396715}
+  weightSide: 1
+  bottleCount: 4
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
+  speedGateStart: 0.06
+  speedGateFull: 0.45
+  speedCurvePower: 1.8
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
+  maxTotalHaptic: 0.9
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!1001 &483217279
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43194,19 +43194,7 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2104345142}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5824888960163335098, guid: 4bf459842f45eb648a8e314fa01c55b6,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 5824888959385007984, guid: 4bf459842f45eb648a8e314fa01c55b6,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 5824888958945119792, guid: 4bf459842f45eb648a8e314fa01c55b6,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4bf459842f45eb648a8e314fa01c55b6, type: 3}
 --- !u!1 &495673382
 GameObject:
@@ -51840,21 +51828,25 @@ MonoBehaviour:
   _grabbable: {fileID: 583512271}
   weightSide: 1
   bottleCount: 4
-  speedDeadZone: 0.03
-  hapticSmoothing: 0.15
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
   speedGateStart: 0.06
   speedGateFull: 0.45
   speedCurvePower: 1.8
-  speedSensitivity: 0.35
-  maxSpeedHaptic: 0.25
-  bottle2Haptic: 0.18
-  bottle4Haptic: 0.42
-  bottle6Haptic: 0.68
-  strongSideMultiplier: 1
-  weakSideMultiplier: 0.35
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
   maxTotalHaptic: 0.9
-  hapticFrequency: 0.15
-  weakSideConstantAmp: 0.1
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!114 &583512269
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54569,7 +54561,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -56206,7 +56198,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -70692,21 +70684,25 @@ MonoBehaviour:
   _grabbable: {fileID: 781548672}
   weightSide: 1
   bottleCount: 6
-  speedDeadZone: 0.03
-  hapticSmoothing: 0.15
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
   speedGateStart: 0.06
   speedGateFull: 0.45
   speedCurvePower: 1.8
-  speedSensitivity: 0.35
-  maxSpeedHaptic: 0.25
-  bottle2Haptic: 0.18
-  bottle4Haptic: 0.42
-  bottle6Haptic: 0.68
-  strongSideMultiplier: 1
-  weakSideMultiplier: 0.35
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
   maxTotalHaptic: 0.9
-  hapticFrequency: 0.15
-  weakSideConstantAmp: 0.1
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!114 &781548670
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79789,7 +79785,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -80105,7 +80101,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -82074,7 +82070,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -86057,6 +86053,7 @@ GameObject:
   - component: {fileID: 968784571}
   - component: {fileID: 968784570}
   - component: {fileID: 968784569}
+  - component: {fileID: 968784576}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -86088,7 +86085,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 968784567}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e94d0a40ec182cf4896118177ed98168, type: 3}
   m_Name: 
@@ -86254,6 +86251,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &968784576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968784567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2a7d909f857ec43bad523165c349f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabbable: {fileID: 968784573}
+  weightSide: 1
+  bottleCount: 6
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
+  speedGateStart: 0.06
+  speedGateFull: 0.45
+  speedCurvePower: 1.8
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
+  maxTotalHaptic: 0.9
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!1001 &970070089
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101908,7 +101939,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -111414,7 +111445,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -114296,7 +114327,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -117070,6 +117101,7 @@ GameObject:
   - component: {fileID: 1338969823}
   - component: {fileID: 1338969822}
   - component: {fileID: 1338969821}
+  - component: {fileID: 1338969828}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -117101,7 +117133,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1338969819}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e94d0a40ec182cf4896118177ed98168, type: 3}
   m_Name: 
@@ -117267,6 +117299,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1338969828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338969819}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2a7d909f857ec43bad523165c349f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabbable: {fileID: 1338969825}
+  weightSide: 0
+  bottleCount: 4
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
+  speedGateStart: 0.06
+  speedGateFull: 0.45
+  speedCurvePower: 1.8
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
+  maxTotalHaptic: 0.9
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!1001 &1339290423
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118795,21 +118861,25 @@ MonoBehaviour:
   _grabbable: {fileID: 1357307367}
   weightSide: 0
   bottleCount: 2
-  speedDeadZone: 0.03
-  hapticSmoothing: 0.15
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
   speedGateStart: 0.06
   speedGateFull: 0.45
   speedCurvePower: 1.8
-  speedSensitivity: 0.35
-  maxSpeedHaptic: 0.25
-  bottle2Haptic: 0.18
-  bottle4Haptic: 0.42
-  bottle6Haptic: 0.68
-  strongSideMultiplier: 1
-  weakSideMultiplier: 0.35
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
   maxTotalHaptic: 0.9
-  hapticFrequency: 0.15
-  weakSideConstantAmp: 0.1
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!114 &1357307365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127174,21 +127244,25 @@ MonoBehaviour:
   _grabbable: {fileID: 1464808270}
   weightSide: 0
   bottleCount: 4
-  speedDeadZone: 0.03
-  hapticSmoothing: 0.15
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
   speedGateStart: 0.06
   speedGateFull: 0.45
   speedCurvePower: 1.8
-  speedSensitivity: 0.35
-  maxSpeedHaptic: 0.25
-  bottle2Haptic: 0.18
-  bottle4Haptic: 0.42
-  bottle6Haptic: 0.68
-  strongSideMultiplier: 1
-  weakSideMultiplier: 0.35
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
   maxTotalHaptic: 0.9
-  hapticFrequency: 0.15
-  weakSideConstantAmp: 0.1
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!114 &1464808268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143479,6 +143553,7 @@ GameObject:
   - component: {fileID: 1661185661}
   - component: {fileID: 1661185660}
   - component: {fileID: 1661185659}
+  - component: {fileID: 1661185666}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -143510,7 +143585,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1661185657}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e94d0a40ec182cf4896118177ed98168, type: 3}
   m_Name: 
@@ -143676,6 +143751,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1661185666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661185657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2a7d909f857ec43bad523165c349f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabbable: {fileID: 1661185663}
+  weightSide: 0
+  bottleCount: 2
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
+  speedGateStart: 0.06
+  speedGateFull: 0.45
+  speedCurvePower: 1.8
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
+  maxTotalHaptic: 0.9
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!1 &1661240946
 GameObject:
   m_ObjectHideFlags: 0
@@ -145648,7 +145757,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -148526,7 +148635,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -152589,6 +152698,7 @@ GameObject:
   - component: {fileID: 1765367862}
   - component: {fileID: 1765367861}
   - component: {fileID: 1765367860}
+  - component: {fileID: 1765367867}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -152620,7 +152730,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1765367858}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e94d0a40ec182cf4896118177ed98168, type: 3}
   m_Name: 
@@ -152786,6 +152896,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1765367867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1765367858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2a7d909f857ec43bad523165c349f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabbable: {fileID: 1765367864}
+  weightSide: 1
+  bottleCount: 2
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
+  speedGateStart: 0.06
+  speedGateFull: 0.45
+  speedCurvePower: 1.8
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
+  maxTotalHaptic: 0.9
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!4 &1765483001 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a1b0ea7c5bdbd0947becf33d8224daf5,
@@ -154097,21 +154241,25 @@ MonoBehaviour:
   _grabbable: {fileID: 1778980086}
   weightSide: 1
   bottleCount: 2
-  speedDeadZone: 0.03
-  hapticSmoothing: 0.15
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
   speedGateStart: 0.06
   speedGateFull: 0.45
   speedCurvePower: 1.8
-  speedSensitivity: 0.35
-  maxSpeedHaptic: 0.25
-  bottle2Haptic: 0.18
-  bottle4Haptic: 0.42
-  bottle6Haptic: 0.68
-  strongSideMultiplier: 1
-  weakSideMultiplier: 0.35
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
   maxTotalHaptic: 0.9
-  hapticFrequency: 0.15
-  weakSideConstantAmp: 0.1
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!114 &1778980084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155104,7 +155252,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -156044,6 +156192,7 @@ GameObject:
   - component: {fileID: 1799002038}
   - component: {fileID: 1799002037}
   - component: {fileID: 1799002036}
+  - component: {fileID: 1799002043}
   m_Layer: 0
   m_Name: BothHandle
   m_TagString: Untagged
@@ -156075,7 +156224,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1799002034}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e94d0a40ec182cf4896118177ed98168, type: 3}
   m_Name: 
@@ -156241,6 +156390,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1799002043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1799002034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2a7d909f857ec43bad523165c349f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabbable: {fileID: 1799002040}
+  weightSide: 0
+  bottleCount: 6
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
+  speedGateStart: 0.06
+  speedGateFull: 0.45
+  speedCurvePower: 1.8
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
+  maxTotalHaptic: 0.9
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!1 &1799315901
 GameObject:
   m_ObjectHideFlags: 0
@@ -163076,7 +163259,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -171189,7 +171372,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0cf93f9c55b9be14aa51939a8ebc69cc, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3ab10788413934d409b36a3e3ecf2ab6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -172791,21 +172974,25 @@ MonoBehaviour:
   _grabbable: {fileID: 1997576998}
   weightSide: 0
   bottleCount: 6
-  speedDeadZone: 0.03
-  hapticSmoothing: 0.15
+  speedDeadZone: 0.06
+  hapticSmoothing: 0.18
   speedGateStart: 0.06
   speedGateFull: 0.45
   speedCurvePower: 1.8
-  speedSensitivity: 0.35
-  maxSpeedHaptic: 0.25
-  bottle2Haptic: 0.18
-  bottle4Haptic: 0.42
-  bottle6Haptic: 0.68
-  strongSideMultiplier: 1
-  weakSideMultiplier: 0.35
+  speedSensitivity: 0.9
+  maxSpeedHaptic: 0.35
+  bottle2Haptic: 0.2
+  bottle4Haptic: 0.4
+  bottle6Haptic: 0.6
+  strongSideMultiplier: 1.2
+  weakSideMultiplier: 0.2
   maxTotalHaptic: 0.9
-  hapticFrequency: 0.15
-  weakSideConstantAmp: 0.1
+  hapticFrequency: 0.18
+  weakSideConstantAmp: 0.15
+  saveLogFile: 1
+  showConsoleLog: 0
+  logInterval: 0.05
+  flushInterval: 1
 --- !u!114 &1997576996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183354,7 +183541,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2143254429
 MonoBehaviour:
   m_ObjectHideFlags: 0
