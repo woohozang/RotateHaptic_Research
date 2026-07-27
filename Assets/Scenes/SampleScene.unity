@@ -48011,7 +48011,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c937ce8880e8df4b8d922eea9be7d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cdRatio: 0.75
+  _cdRatio: 1
+  _useDirectionalZMapping: 1
+  _zDirectionDeadzone: 0.0005
   _applyCDToX: 0
   _applyCDToY: 0
   _applyCDToZ: 1
@@ -134222,7 +134224,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c937ce8880e8df4b8d922eea9be7d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cdRatio: 1
+  _cdRatio: 0.6
+  _useDirectionalZMapping: 1
+  _zDirectionDeadzone: 0.0005
   _applyCDToX: 0
   _applyCDToY: 0
   _applyCDToZ: 1
@@ -187610,8 +187614,8 @@ SceneRoots:
   - {fileID: 1152299028}
   - {fileID: 1837628575}
   - {fileID: 14112676}
-  - {fileID: 418139720}
   - {fileID: 506250012}
   - {fileID: 1601436161}
   - {fileID: 184295368}
+  - {fileID: 418139720}
   - {fileID: 696232374}
