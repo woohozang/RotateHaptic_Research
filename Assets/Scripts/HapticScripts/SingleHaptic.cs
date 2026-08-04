@@ -89,6 +89,12 @@ public class SingleVibrationWeightHapticController : MonoBehaviour
 
     public string LogFilePath => _logFilePath;
 
+    //로그 데이터
+    public float LeftHapticAmplitude => _smoothedLeftAmp;
+    public float RightHapticAmplitude => _smoothedRightAmp;
+    public float HapticFrequency => hapticFrequency;
+    public int ConfiguredBottleCount => (int)bottleCount;
+
     private void Start()
     {
         if (saveLogFile)

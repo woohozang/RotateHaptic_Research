@@ -95,7 +95,7 @@ namespace Oculus.Interaction
         public void UpdateTransform()
         {
             var target = _grabbable.Transform;
-            if (_grabbable.GrabPoints.Count < 2) return;
+            if (_grabbable == null || _grabbable.GrabPoints.Count < 2) return;
 
             var grabA = _grabbable.GrabPoints[0];
             var grabB = _grabbable.GrabPoints[1];

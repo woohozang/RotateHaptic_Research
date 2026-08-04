@@ -11,24 +11,34 @@ public class StrategyMove : MonoBehaviour
     [Header("Settings")]
     public bool requireTwoHands = false;
 
-    private bool _lastAnyGrabbed = false;
-
+    [Header("Vignette")]
     public GameObject Vignett;
 
-    void Update()
+    private bool _lastAnyGrabbed = false;
+
+    private void Update()
     {
-        if (locomotor == null || cartGrabbables == null || cartGrabbables.Length == 0)
+        if (locomotor == null ||
+            cartGrabbables == null ||
+            cartGrabbables.Length == 0)
+        {
             return;
+        }
 
         bool anyGrabbed = false;
 
         for (int i = 0; i < cartGrabbables.Length; i++)
         {
             Grabbable g = cartGrabbables[i];
-            if (g == null) continue;
+
+            if (g == null)
+                continue;
 
             int grabCount = g.SelectingPointsCount;
-            bool isGrabbed = requireTwoHands ? (grabCount >= 2) : (grabCount > 0);
+
+            bool isGrabbed = requireTwoHands
+                ? grabCount >= 2
+                : grabCount > 0;
 
             if (isGrabbed)
             {
@@ -37,27 +47,39 @@ public class StrategyMove : MonoBehaviour
             }
         }
 
-        if (anyGrabbed != _lastAnyGrabbed)
-        {
-            if (anyGrabbed)
-            {
-                // 핵심: 이동 완전 차단 + 속도 초기화
-                locomotor.DisableMovement();
-                locomotor.DisableRotation();
-                Vignett.SetActive(false);
-                locomotor.DisableCrouch();
-            }
-            else
-            {
-                //  다시 활성화 (자동으로 velocity 0됨)
-                locomotor.EnableMovement();
-                locomotor.EnableRotation();
-                Vignett.SetActive(true);
-                locomotor.EnableCrouch();
-                
-            }
+        // 잡기 상태가 변경된 순간에만 처리
+        if (anyGrabbed == _lastAnyGrabbed)
+            return;
 
-            _lastAnyGrabbed = anyGrabbed;
+        if (anyGrabbed)
+        {
+            /*
+             * 기존 의도 유지:
+             * 1. 이동 상태 및 속도 초기화
+             * 2. Locomotor 전체를 꺼서 이동·회전·앉기 차단
+             * 3. 카트 조작 중 Vignette 비활성화
+             */
+            locomotor.DisableMovement();
+            locomotor.enabled = false;
+
+            if (Vignett != null)
+                Vignett.SetActive(false);
         }
+        else
+        {
+            /*
+             * 기존 의도 유지:
+             * 1. Locomotor 다시 활성화
+             * 2. 이동 허용
+             * 3. Vignette 다시 활성화
+             */
+            locomotor.enabled = true;
+            locomotor.EnableMovement();
+
+            if (Vignett != null)
+                Vignett.SetActive(true);
+        }
+
+        _lastAnyGrabbed = anyGrabbed;
     }
 }

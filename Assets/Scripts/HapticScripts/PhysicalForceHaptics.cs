@@ -1,7 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
-using UnityEngine;
+﻿using UnityEngine;
 using Oculus.Interaction;
 
 public class PhysicalForceHaptics : MonoBehaviour
@@ -75,57 +72,44 @@ public class PhysicalForceHaptics : MonoBehaviour
     [Range(0.01f, 1f)]
     public float hapticSmoothing = 0.22f;
 
-    [Header("CSV Log Settings")]
-    [Tooltip("CSV 파일 저장 여부")]
-    public bool saveCsvLog = true;
-
-    [Tooltip("Unity Console에도 로그를 출력할지 여부")]
-    public bool showConsoleLog = false;
-
-    [Tooltip("CSV 기록 간격입니다. 0이면 매 프레임 기록합니다.")]
-    [Min(0f)]
-    public float logInterval = 0.05f;
-
-    [Tooltip("파일 내용을 실제 디스크에 반영하는 간격입니다.")]
-    [Min(0.1f)]
-    public float flushInterval = 1f;
-
-
-
-
     private Vector3 _lastPosition;
     private float _lastYaw;
 
     private float _currentLeftAmp;
     private float _currentRightAmp;
 
-    // 컨트롤러 속도 로그용
+    // 컨트롤러 속도 계산값
     private float _currentLeftControllerSpeed;
     private float _currentRightControllerSpeed;
 
-    // CSV 로그용
-    private StreamWriter _logWriter;
-    private string _logFilePath;
+    // =========================================================
+    // 외부 로그 스크립트에서 읽을 수 있는 현재 진동값
+    // =========================================================
 
-    private float _logStartTime;
-    private float _nextLogTime;
-    private float _nextFlushTime;
-
-    public string LogFilePath => _logFilePath;
-
-    void Start()
+    public float LeftHapticAmplitude
     {
-        ResetMotionReference();
-
-        if (saveCsvLog)
-        {
-            CreateLogFile();
-        }
+        get { return _currentLeftAmp; }
     }
 
-    void Update()
+    public float RightHapticAmplitude
     {
-        if (grabbable == null || grabbable.SelectingPointsCount == 0)
+        get { return _currentRightAmp; }
+    }
+
+    public float HapticFrequency
+    {
+        get { return fixedFrequency; }
+    }
+
+    private void Start()
+    {
+        ResetMotionReference();
+    }
+
+    private void Update()
+    {
+        if (grabbable == null ||
+            grabbable.SelectingPointsCount == 0)
         {
             StopHaptics();
             ResetMotionReference();
@@ -328,22 +312,6 @@ public class PhysicalForceHaptics : MonoBehaviour
             _currentLeftAmp,
             _currentRightAmp
         );
-
-        // 10. CSV 로그 기록
-        WriteLogIfNeeded(
-            localX,
-            bias,
-            biasNorm,
-            cartSpeed,
-            yawSpeed,
-            motionNorm,
-            _currentLeftControllerSpeed,
-            _currentRightControllerSpeed,
-            _currentLeftAmp,
-            _currentRightAmp
-        );
-
-        FlushLogIfNeeded();
     }
 
     private float GetControllerSpeed()
@@ -364,17 +332,17 @@ public class PhysicalForceHaptics : MonoBehaviour
         );
     }
 
-    private void ApplyHaptics(float l, float r)
+    private void ApplyHaptics(float left, float right)
     {
         OVRInput.SetControllerVibration(
             fixedFrequency,
-            Mathf.Clamp01(l),
+            Mathf.Clamp01(left),
             OVRInput.Controller.LTouch
         );
 
         OVRInput.SetControllerVibration(
             fixedFrequency,
-            Mathf.Clamp01(r),
+            Mathf.Clamp01(right),
             OVRInput.Controller.RTouch
         );
     }
@@ -406,277 +374,13 @@ public class PhysicalForceHaptics : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // CSV 로그
-    // =========================================================
-
-    private void CreateLogFile()
-    {
-        try
-        {
-            string folderPath = Path.Combine(
-                Application.persistentDataPath,
-                "PhysicalForceHapticLogs"
-            );
-
-            Directory.CreateDirectory(folderPath);
-
-            string fileName =
-                "PhysicalForceHaptic_" +
-                DateTime.Now.ToString(
-                    "yyyyMMdd_HHmmss",
-                    CultureInfo.InvariantCulture
-                ) +
-                ".csv";
-
-            _logFilePath = Path.Combine(
-                folderPath,
-                fileName
-            );
-
-            _logWriter = new StreamWriter(
-                _logFilePath,
-                false
-            );
-
-            // Excel 한글 깨짐 방지용 UTF-8 BOM
-            _logWriter.Write('\uFEFF');
-
-            _logWriter.WriteLine(
-                "DateTime," +
-                "ElapsedTime_sec," +
-                "Frame," +
-                "CargoLocalX_m," +
-                "Bias," +
-                "BiasNormalized," +
-                "LeftAmplitude," +
-                "RightAmplitude," +
-                "HapticFrequency," +
-                "LeftControllerSpeed_mps," +
-                "RightControllerSpeed_mps," +
-                "CartSpeed_mps," +
-                "YawSpeed_degps," +
-                "MotionNormalized"
-            );
-
-            _logWriter.Flush();
-
-            _logStartTime = Time.unscaledTime;
-            _nextLogTime = Time.unscaledTime;
-            _nextFlushTime =
-                Time.unscaledTime + flushInterval;
-
-            Debug.Log(
-                "[PhysicalForceHaptics] CSV 로그 파일 생성\n" +
-                _logFilePath
-            );
-        }
-        catch (Exception exception)
-        {
-            Debug.LogError(
-                "[PhysicalForceHaptics] CSV 파일 생성 실패\n" +
-                exception
-            );
-
-            CloseLogFile();
-        }
-    }
-
-    private void WriteLogIfNeeded(
-        float cargoLocalX,
-        float bias,
-        float biasNormalized,
-        float cartSpeed,
-        float yawSpeed,
-        float motionNormalized,
-        float leftControllerSpeed,
-        float rightControllerSpeed,
-        float leftAmplitude,
-        float rightAmplitude
-    )
-    {
-        if (!ShouldWriteLog())
-        {
-            return;
-        }
-
-        float elapsedTime =
-            Time.unscaledTime - _logStartTime;
-
-        if (showConsoleLog)
-        {
-            Debug.Log(
-                "[PhysicalForceHaptics Log] " +
-                $"CargoX={cargoLocalX:F4}, " +
-                $"Bias={bias:F3}, " +
-                $"L Amp={leftAmplitude:F3}, " +
-                $"R Amp={rightAmplitude:F3}, " +
-                $"L Speed={leftControllerSpeed:F3} m/s, " +
-                $"R Speed={rightControllerSpeed:F3} m/s"
-            );
-        }
-
-        if (!saveCsvLog || _logWriter == null)
-        {
-            return;
-        }
-
-        try
-        {
-            string line = string.Join(
-                ",",
-                DateTime.Now.ToString(
-                    "yyyy-MM-dd HH:mm:ss.fff",
-                    CultureInfo.InvariantCulture
-                ),
-                elapsedTime.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                Time.frameCount.ToString(
-                    CultureInfo.InvariantCulture
-                ),
-                cargoLocalX.ToString(
-                    "F5",
-                    CultureInfo.InvariantCulture
-                ),
-                bias.ToString(
-                    "F5",
-                    CultureInfo.InvariantCulture
-                ),
-                biasNormalized.ToString(
-                    "F5",
-                    CultureInfo.InvariantCulture
-                ),
-                leftAmplitude.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                rightAmplitude.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                fixedFrequency.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                leftControllerSpeed.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                rightControllerSpeed.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                cartSpeed.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                yawSpeed.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                ),
-                motionNormalized.ToString(
-                    "F4",
-                    CultureInfo.InvariantCulture
-                )
-            );
-
-            _logWriter.WriteLine(line);
-        }
-        catch (Exception exception)
-        {
-            Debug.LogError(
-                "[PhysicalForceHaptics] CSV 데이터 기록 실패\n" +
-                exception
-            );
-
-            CloseLogFile();
-        }
-    }
-
-    private bool ShouldWriteLog()
-    {
-        if (logInterval <= 0f)
-        {
-            return true;
-        }
-
-        if (Time.unscaledTime < _nextLogTime)
-        {
-            return false;
-        }
-
-        _nextLogTime =
-            Time.unscaledTime + logInterval;
-
-        return true;
-    }
-
-    private void FlushLogIfNeeded()
-    {
-        if (_logWriter == null)
-        {
-            return;
-        }
-
-        if (Time.unscaledTime < _nextFlushTime)
-        {
-            return;
-        }
-
-        _nextFlushTime =
-            Time.unscaledTime + flushInterval;
-
-        try
-        {
-            _logWriter.Flush();
-        }
-        catch (Exception exception)
-        {
-            Debug.LogError(
-                "[PhysicalForceHaptics] CSV Flush 실패\n" +
-                exception
-            );
-
-            CloseLogFile();
-        }
-    }
-
-    private void CloseLogFile()
-    {
-        if (_logWriter == null)
-        {
-            return;
-        }
-
-        try
-        {
-            _logWriter.Flush();
-            _logWriter.Close();
-        }
-        catch (Exception exception)
-        {
-            Debug.LogWarning(
-                "[PhysicalForceHaptics] CSV 종료 오류\n" +
-                exception
-            );
-        }
-        finally
-        {
-            _logWriter = null;
-        }
-    }
-
     private void OnDisable()
     {
         StopHaptics();
-        CloseLogFile();
     }
 
     private void OnApplicationQuit()
     {
         StopHaptics();
-        CloseLogFile();
     }
 }
